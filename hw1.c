@@ -19,7 +19,7 @@ static int MAX_DATA_STACK_HEIGHT = 23;
 static int MAX_CODE_LENGTH = 500;
 static int MAX_LEXI_LEVELS = 3;
 
-instruction * get_instructions(FILE * fp);
+instruction ** get_instructions(FILE * fp);
 
 int main(int argc, char *argv[])
 {
@@ -38,10 +38,13 @@ int main(int argc, char *argv[])
 	// digest input file
 	FILE * fp;
 
+	// return varaible for testing
+	instruction ** insts;
+
 	if (argc > 1)
 	{
 		fp = fopen(argv[1], "r");
-		get_instructions(fp);
+		insts = get_instructions(fp);
 	}
 	else
 	{
@@ -49,8 +52,7 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 
-
-	printf("%d \n", atoi("15"));
+	printf("%d\t%d\t%d\t%d\n", insts[0]->OP, insts[0]->R, insts[0]->L, insts[0]->M);
 	// create an array of instructions
 
 	fclose(fp);
@@ -58,12 +60,13 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-instruction * get_instructions(FILE * fp)
+instruction ** get_instructions(FILE * fp)
 {
 	int bufferLen = 16; // guessing max character length of an instruction
 	char * buffer = malloc(sizeof(char) * bufferLen);
 
-	instruction instructions[256]; // 256 is arbitrary
+	// instruction instructions[256]; // 256 is arbitrary
+	instruction ** insts = malloc(sizeof(instruction *) * 256);
 	int i = 0; // index counter for instruction array
 
 	const char * delimiter =  " ";
@@ -74,29 +77,27 @@ instruction * get_instructions(FILE * fp)
 		// grab first token
 		int k = 0;
 		token = strtok(buffer, delimiter);
+
+		instruction curInst;
+		insts[i] = &curInst;
 		//printf("%d: ", i);
 		while(token != NULL)
 		{
 			if (k == 0)
 			{
-				instructions[i].OP = atoi(token);
-				printf("OP: %d\t", instructions[i].OP);
+				curInst.OP = atoi(token);
 			}
 			else if (k == 1)
 			{
-				instructions[i].R = atoi(token);
-				printf("R: %d\t", instructions[i].R);
+				curInst.R = atoi(token);
 			}
 			else if (k == 2)
 			{
-				instructions[i].L = atoi(token);
-				printf("L: %d\t", instructions[i].L);
+				curInst.L = atoi(token);
 			}
 			else if (k == 3)
 			{
-				instructions[i].M = atoi(token);
-				printf("M: %d\t", instructions[i].M);
-				printf("\n");
+				curInst.M = atoi(token);
 				break;
 			}
 
@@ -107,7 +108,7 @@ instruction * get_instructions(FILE * fp)
 
 		i++;
 		// for testing purposes
-		if (i == 5)
+		if (i == 10)
 				break;
 	}
 
@@ -118,7 +119,7 @@ instruction * get_instructions(FILE * fp)
 		printf("%d\t%d\t%d\t%d\n", instructions[i].OP, instructions[i].R,instructions[i].L, instructions[i].M);
 	}
 	*/
-	return NULL;
+	return insts;
 }
 
 int fetch()
