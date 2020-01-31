@@ -20,7 +20,8 @@ static int MAX_CODE_LENGTH = 500;
 static int MAX_LEXI_LEVELS = 3;
 
 instruction ** get_instructions(FILE * fp);
-void print_code(instruction ** code, int codeLen, int * BP, int * SP, int * GP, int * PC, int * IR);
+void print_code(instruction ** code, int codeLen, int * BP, int * SP, int * GP, int * PC, instruction * IR);
+void fetch(instruction ** code, int * BP, int * SP, int * GP, int * PC, instruction * IR);
 
 int main(int argc, char *argv[])
 {
@@ -31,7 +32,7 @@ int main(int argc, char *argv[])
 		data_stack[i] = 0;
 
 	int * SP = malloc(sizeof(int));
-	* SP = MAX_DATA_STACK_HEIGHT;
+	* SP = 0;
 
 	int * BP = malloc(sizeof(int)); // base pointer
 	* BP = 0;
@@ -42,8 +43,11 @@ int main(int argc, char *argv[])
 	int * PC = malloc(sizeof(int));
 	* PC = 0;
 
-	int * IR = malloc(sizeof(int));
-	* IR = 0;
+	instruction * IR = malloc(sizeof(instruction));
+	IR->OP = 0;
+	IR->R = 0;
+	IR->L = 0;
+	IR->M = 0;
 
 	int * stack = calloc(sizeof(int), MAX_DATA_STACK_HEIGHT);
 	
@@ -64,8 +68,19 @@ int main(int argc, char *argv[])
 	fclose(fp);
 
 	print_code(code, 17, BP, SP, GP, PC, IR);
-
+	fetch(code, BP, SP, GP, PC, IR);
+	printf("\n%d %d %d %d\n", IR->OP, IR->R, IR->L, IR->M);
 	return 0;
+}
+
+
+
+void fetch(instruction ** code, int * BP, int * SP, int * GP, int * PC, instruction * IR)
+{
+
+	*IR = *code[*PC];
+	*PC = *PC + 1;
+	return;
 }
 
 instruction ** get_instructions(FILE * fp)
@@ -126,7 +141,7 @@ instruction ** get_instructions(FILE * fp)
 	return code;
 }
 
-void print_code(instruction ** code, int codeLen, int * BP, int * SP, int * GP, int * PC, int * IR)
+void print_code(instruction ** code, int codeLen, int * BP, int * SP, int * GP, int * PC, instruction * IR)
 {
 	printf("Line OP R L M\n");
 	for (int i=0; i<codeLen; i++)
@@ -180,20 +195,13 @@ void print_code(instruction ** code, int codeLen, int * BP, int * SP, int * GP, 
 				// set halt flag to 1, end of program
 				printf("SIO 0, 0, 3\n");
 				break;
-			case(12):
-				// negate
-				break;
 			default:
 				break;
 		}
 	}
 }
 
-int fetch(instruction ** code, int * BP, int * SP, int * GP, int * PC, int * IR)
-{
-	// code[PC] -> IR
-	return 0;
-}
+
 
 int execute(instruction ** code, int * BP, int * SP, int * GP, int * PC, int * IR)
 {
