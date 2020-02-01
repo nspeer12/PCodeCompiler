@@ -8,6 +8,7 @@ struct IR
 	int * ADDR;
 };
 
+// Defining the instruction.
 typedef struct instruction{
 	int OP;
 	int R;
@@ -29,36 +30,44 @@ int execute(instruction ** code, int * BP, int * SP, int * PC, instruction * IR,
 int main(int argc, char *argv[])
 {
 
+	// Stack Pointer
 	int * SP = malloc(sizeof(int));
 	* SP = 0;
 
+	// Base Pointer
 	int * BP = malloc(sizeof(int)); // base pointer
 	* BP = 1;
 
+	// Program Counter
 	int * PC = malloc(sizeof(int));
 	*PC = 0;
 
+	// setting defaults of ISA
 	instruction * IR = malloc(sizeof(instruction));
 	IR->OP = 0;
 	IR->R = 0;
 	IR->L = 0;
 	IR->M = 0;
 
+	// creating the stack memory as an array initializing all values to 0.
 	int * stack = malloc(MAX_DATA_STACK_HEIGHT * sizeof(int));
 	for (int i = 0; i < MAX_DATA_STACK_HEIGHT; i++)
 		stack[i] = 0;
-	
+
+	// creating the register of 8 empty spots.
 	int * registerFile = malloc(8 * sizeof(int));
 	for (int i = 0; i < 8; i++)
 		registerFile[i] = 0;
 
-	// digest input file and store in an array of instructions
+	// retreiving data from input file.
 	FILE * fp;
 	instruction ** code;
 
 	if (argc > 1)
 	{
 		fp = fopen(argv[1], "r");
+
+		// function that retreives data from the input file.
 		code = get_instructions(fp);
 	}
 	else
@@ -69,13 +78,15 @@ int main(int argc, char *argv[])
 	fclose(fp);
 
 	//print_code(code, 17, BP, SP, PC, IR);
+	// Fetching and executing functions happen
+	// QUESTION: Why does i<10? I don't understand.
 	for (int i = 0; i < 10; i++)
 	{
 		fetch(code, BP, SP, PC, IR);
-		execute(code, BP, SP, PC, IR, stack, registerFile);	
+		execute(code, BP, SP, PC, IR, stack, registerFile);
 
 	}
-	
+
 
 	return 0;
 }
@@ -86,7 +97,7 @@ int execute(instruction ** code, int * BP, int * SP, int * PC, instruction * IR,
 
 		// !!! Check the condition for the switch
 		switch (IR->OP)
-		{	
+		{
 			case(0):
 				// loads a constant value
 				printf("LIT %.2d, 0, %d\n", IR->OP, IR->M);
@@ -120,7 +131,7 @@ int execute(instruction ** code, int * BP, int * SP, int * PC, instruction * IR,
 				stack[*SP + 1] = 0;	// space return value
 				stack[*SP + 2] = base(IR, stack, BP); 	// static link (SL)
                 stack[*SP + 3] = *BP;	// dynamic link (DL)
-	           	stack[*SP + 4] = *PC;	 		// return address (RA) 
+	           	stack[*SP + 4] = *PC;	 		// return address (RA)
                 *BP = *SP + 1;
 	          	*PC = IR->M;
 				break;
@@ -165,6 +176,71 @@ int execute(instruction ** code, int * BP, int * SP, int * PC, instruction * IR,
 				return 1;
 				break;
 
+			case(11):
+				// NEG, just multiplies R[i] * -1;
+				registerFile[IR->R] = registerFile[IR->R] * -1;
+				break;
+
+			case(12):
+				// ADD R[i] = R[j] + R[k], j refers to "L", k refers to "M".
+				registerFile[IR->R] = registerFile[IR->L] + registerFile[IR->M];
+				break;
+
+			case(13):
+				// Subtract
+				registerFile[IR->R] = registerFile[IR->L] - registerFile[IR->M];
+				break;
+
+			case(14):
+				// Multiply
+				registerFile[IR->R] = registerFile[IR->L] * registerFile[IR->M];
+				break;
+
+			case(15):
+				// Divide
+				registerFile[IR->R] = registerFile[IR->L] / registerFile[IR->M];
+				break;
+
+			case(16):
+				// Check odd value.
+				registerFile[IR->R] = registerFile[IR->R] % 2;
+				break;
+
+			case(17):
+				// Check odd value.
+				registerFile[IR->R] = registerFile[IR->L] % registerFile[IR->M];
+				break;
+
+			case(18):
+				// Check for equivalence.
+				registerFile[IR->R] = (registerFile[IR->L] == registerFile[IR->M]);
+				break;
+
+			case(19):
+				// NEQ.
+				registerFile[IR->R] = (registerFile[IR->L] != registerFile[IR->M]);
+				break;
+
+			case(20):
+				// LSS.
+				registerFile[IR->R] = (registerFile[IR->L] < registerFile[IR->M]);
+				break;
+
+			case(21):
+				// LEQ.
+				registerFile[IR->R] = (registerFile[IR->L] <= registerFile[IR->M]);
+				break;
+
+			case(22):
+				// GTR.
+				registerFile[IR->R] = (registerFile[IR->L] > registerFile[IR->M]);
+				break;
+
+			case(23):
+				// GEQ.
+				registerFile[IR->R] = (registerFile[IR->L] >= registerFile[IR->M]);
+				break;
+
 			default:
 				break;
 		}
@@ -184,12 +260,16 @@ void fetch(instruction ** code, int * BP, int * SP, int * PC, instruction * IR)
 
 instruction ** get_instructions(FILE * fp)
 {
-	int bufferLen = 16; // guessing max character length of an instruction
+	// guessing max character length of an instruction
+	int bufferLen = 16;
 	char * buffer = malloc(sizeof(char) * bufferLen);
 
-	// instruction instructions[256]; // 256 is arbitrary
+	// instruction instructions[256];
+	// 256 is arbitrary
 	instruction ** code = malloc(sizeof(instruction *) * MAX_CODE_LENGTH);
-	int i = 0; // index counter for instruction array
+
+	// index counter for instruction array
+	int i = 0;
 
 	const char * delimiter =  " ";
 	char * token;
@@ -204,6 +284,7 @@ instruction ** get_instructions(FILE * fp)
 		// Trying to work with a double pointer matrix gave me 23 compiler errors and an aneurysm
 		instruction  * curInst = malloc(sizeof(instruction));
 		code[i] = curInst;
+
 		//printf("%d: ", i);
 		while(token != NULL)
 		{
@@ -231,12 +312,13 @@ instruction ** get_instructions(FILE * fp)
 		}
 
 		i++;
+
 		// prevent stack from overflowing
 		if (i == MAX_CODE_LENGTH)
 				break;
 	}
 
-	
+
 	return code;
 }
 
@@ -271,7 +353,7 @@ void print_code(instruction ** code, int codeLen, int * BP, int * SP, int * PC, 
 	{
 		printf("%-5d", i);
 		switch (code[i]->OP)
-		{	
+		{
 			case(0):
 				// loads a constant value
 				printf("LIT %.2d, 0, %d\n", code[i]->R, code[i]->M);
@@ -318,6 +400,7 @@ void print_code(instruction ** code, int codeLen, int * BP, int * SP, int * PC, 
 				// set halt flag to 1, end of program
 				printf("SIO 0, 0, 3\n");
 				break;
+
 			default:
 				break;
 		}
