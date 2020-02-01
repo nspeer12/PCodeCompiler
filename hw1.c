@@ -79,7 +79,6 @@ int main(int argc, char *argv[])
 
 	//print_code(code, 17, BP, SP, PC, IR);
 	// Fetching and executing functions happen
-	// QUESTION: Why does i<10? I don't understand.
 	for (int i = 0; i < 10; i++)
 	{
 		fetch(code, BP, SP, PC, IR);
