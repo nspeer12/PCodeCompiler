@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 	* BP = 1;
 
 	int * PC = malloc(sizeof(int));
-	* PC = 0;
+	*PC = 0;
 
 	instruction * IR = malloc(sizeof(instruction));
 	IR->OP = 0;
@@ -44,9 +44,13 @@ int main(int argc, char *argv[])
 	IR->L = 0;
 	IR->M = 0;
 
-	int * stack = calloc(sizeof(int), MAX_DATA_STACK_HEIGHT);
+	int * stack = malloc(MAX_DATA_STACK_HEIGHT * sizeof(int));
+	for (int i = 0; i < MAX_DATA_STACK_HEIGHT; i++)
+		stack[i] = 0;
 	
-	int * registerFile = calloc(sizeof(int), 8);
+	int * registerFile = malloc(8 * sizeof(int));
+	for (int i = 0; i < 8; i++)
+		registerFile[i] = 0;
 
 	// digest input file and store in an array of instructions
 	FILE * fp;
@@ -65,13 +69,11 @@ int main(int argc, char *argv[])
 	fclose(fp);
 
 	//print_code(code, 17, BP, SP, PC, IR);
-
-	for (int i = 0; i < 10; i ++)
+	for (int i = 0; i < 10; i++)
 	{
 		fetch(code, BP, SP, PC, IR);
-		execute(code, BP, SP, PC, IR, stack, registerFile);
+		execute(code, BP, SP, PC, IR, stack, registerFile);	
 
-		// printf("%d\n", code[i]->OP);
 	}
 	
 
@@ -81,13 +83,13 @@ int main(int argc, char *argv[])
 int execute(instruction ** code, int * BP, int * SP, int * PC, instruction * IR, int * stack, int * registerFile)
 {
 		// i is the R operand
-		
+
 		// !!! Check the condition for the switch
 		switch (IR->OP)
 		{	
 			case(0):
 				// loads a constant value
-				// printf("LIT %.2d, 0, %d\n", code[i]->R, code[i]->M);
+				printf("LIT %.2d, 0, %d\n", IR->OP, IR->M);
 				registerFile[IR->R] = IR->M;
 				break;
 
@@ -152,7 +154,9 @@ int execute(instruction ** code, int * BP, int * SP, int * PC, instruction * IR,
 			case(9):
 				// read input from the user and store it in the register
 				printf("SIO %d, 0, 2\n", code[IR->R]->R);
-				scanf("%d", &registerFile[IR->R]);
+				int reg = IR->R;
+				scanf("input: %d", &registerFile[reg]);
+				printf("here 0");
 				break;
 
 			case(10):
@@ -166,14 +170,13 @@ int execute(instruction ** code, int * BP, int * SP, int * PC, instruction * IR,
 		}
 
 		print_state(IR, stack, PC, BP, SP, registerFile);
+
 	return 0;
 }
 
 
 void fetch(instruction ** code, int * BP, int * SP, int * PC, instruction * IR)
 {
-
-	printf("PC: %d\n", *PC);
 	*IR = *code[*PC];
 	*PC = *PC + 1;
 	return;
