@@ -29,9 +29,11 @@ int main(int argc, char *argv[])
 {
 
 	// Stack Pointer
+	// Points to the top of the stack.
 	int SP = 0;
 
 	// Base Pointer
+	// Points to a current AR in stack. 
 	int BP = 1;
 
 	// Program Counter
@@ -88,7 +90,9 @@ int main(int argc, char *argv[])
 	}
 	fclose(fp);
 
-	print_code(code, numLines);
+	// Putting numLines-1 because it has 17 lines but it only goes up to 16 in the output.
+	// The 17th line is empty.
+	print_code(code, numLines-1);
 
 	// Fetching and executing functions happen
 	int halt = 0;
@@ -132,10 +136,11 @@ int main(int argc, char *argv[])
 				// printf("CAL 0, %d, %d\n", code[i]->L, code[i]->M);
 				stack[SP + 1] = 0;	// space return value
 				stack[SP + 2] = base(IR, IR.L, stack, BP); 	// static link (SL)
-            stack[SP + 3] = BP;	// dynamic link (DL)
-	         stack[SP + 4] = PC;	 		// return address (RA)
-            BP = SP + 1;
-	         PC = IR.M;
+        stack[SP + 3] = BP;	// dynamic link (DL)
+	      stack[SP + 4] = PC;	 		// return address (RA)
+        BP = SP + 1;
+	      PC = IR.M;
+
 				break;
 
 			case(6):
@@ -375,49 +380,49 @@ void print_code(instruction * code, int codeLen)
 		printf("%-5d", i);
 		switch (code[i].OP)
 		{
-			case(0):
-				// loads a constant value
-				printf("LIT %.2d, 0, %d\n", code[i].R, code[i].M);
-				break;
 			case(1):
+				// loads a constant value
+				printf("LIT %d, 0, %d\n", code[i].R, code[i].M);
+				break;
+			case(2):
 				// returns from a subroutine
 				printf("RTN 0, 0, 0\n");
 				break;
-			case(2):
+			case(3):
 				// loads the value into a register from a stack location at offset M and level L
 				printf("LOD %d, %d, %d\n",code[i].R, code[i].L, code[i].M);
 				break;
-			case(3):
+			case(4):
 				// store the value in the stack at offset M and level L
 				printf("STO %d, %d, %d\n",code[i].R, code[i].L, code[i].M);
 				break;
-			case(4):
+			case(5):
 				// call a procedure at index M
 				// generates a new activation record
 				printf("CAL 0, %d, %d\n", code[i].L, code[i].M);
 				break;
-			case(5):
+			case(6):
 				// allocate M locals, increment stack pointer by M
 				// first four values are functional value, static link, dyn. link, and return addr.
 				printf("INC 0, 0, %d\n", code[i].M);
 				break;
-			case(6):
+			case(7):
 				// jump to instruction M
 				printf("JMP 0, 0, %d\n", code[i].M);
 				break;
-			case(7):
+			case(8):
 				// jump to instruction M if R == 0
 				printf("JPC %d, 0, %d\n", code[i].R, code[i].M);
 				break;
-			case(8):
+			case(9):
 				// write a register to the screen
 				printf("SIO %d, 0, 1\n", code[i].R);
 				break;
-			case(9):
+			case(10):
 				// read input from the user and store it in the register
 				printf("SIO %d, 0, 2\n", code[i].R);
 				break;
-			case(10):
+			case(11):
 				// set halt flag to 1, end of program
 				printf("SIO 0, 0, 3\n");
 				break;
