@@ -22,8 +22,8 @@ static int MAX_LEXI_LEVELS = 3;
 
 instruction * get_instructions(FILE * fp, int numLines);
 void print_code(instruction * code, int codeLen);
-int base(instruction IR, int l, int * stack, int BP);
-void print_state(instruction IR, int * stack, int PC, int BP, int SP, int * registerFile);
+int base(int l, int * stack, int BP);
+void print_state(instruction IR, int * stack, int PC, int BP, int SP, int * registerFile, int * activationRecord);
 
 int main(int argc, char *argv[])
 {
@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 	int SP = 0;
 
 	// Base Pointer
-	// Points to a current AR in stack. 
+	// Points to a current AR in stack.
 	int BP = 1;
 
 	// Program Counter
@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 	IR.L = 0;
 	IR.M = 0;
 
-	// creating the stack memory as an array initializing all values to 0.
+	// creating the stack memory as an array initializing all values to 0
 	int * stack = malloc(MAX_DATA_STACK_HEIGHT * sizeof(int));
 	for (int i = 0; i < MAX_DATA_STACK_HEIGHT; i++)
 		stack[i] = 0;
@@ -56,19 +56,20 @@ int main(int argc, char *argv[])
 	for (int i = 0; i < MAX_DATA_STACK_HEIGHT; i++)
 		stack[i] = 0;
 
-	// creating the register of 8 empty spots.
+	// create register file of length 8
 	int * registerFile = malloc(8 * sizeof(int));
 	for (int i = 0; i < 8; i++)
 		registerFile[i] = 0;
 
 	// retreiving data from input file.
-	FILE * fp;
 	instruction * code;
 	int numLines = 0;
 
+	// File IO
 	if (argc > 1)
 	{
-
+		FILE * fp;
+		// count length of file
 		char ch;
 		fp = fopen(argv[1], "r");
 		while(!feof(fp))
@@ -77,18 +78,21 @@ int main(int argc, char *argv[])
   			if(ch == '\n')
     			numLines++;
 		}
+		// close and reopen file so we can start from the beggining of the file
 		fclose(fp);
 		fp = fopen(argv[1], "r");
-		// function that retreives data from the input file.
+
+		// function that retreives data from the input file
 		code = get_instructions(fp, numLines);
 		printf("NUM LINES %d\n", numLines);
+		fclose(fp);
 	}
 	else
 	{
 		printf("Error: invalid input file.\n");
 		return 0;
 	}
-	fclose(fp);
+
 
 	// Putting numLines-1 because it has 17 lines but it only goes up to 16 in the output.
 	// The 17th line is empty.
@@ -101,18 +105,20 @@ int main(int argc, char *argv[])
 	{
 		IR = code[PC];
 		PC = PC + 1;
-		printf("OP: %d\tR %d\tL %d\tM %d\t", IR.OP, IR.R, IR.L, IR.M);
+		// printf("\nOP: %d\tR %d\tL %d\tM %d\n", IR.OP, IR.R, IR.L, IR.M);
+
+		//print_state(IR, stack, PC, BP, SP, registerFile, activationRecord);
 		switch (IR.OP)
 		{
 			case(1):
 				// loads a constant value
-				printf("LIT %.2d, 0, %d\n", IR.OP, IR.M);
+				printf("LIT %2d, 0, %d\t", IR.R, IR.M);
 				registerFile[IR.R] = IR.M;
 				break;
 
 			case(2):
 				// returns from a subroutine
-				// printf("RTN 0, 0, 0\n");
+				printf("RTN 0, 0, 0\t");
 				SP = BP - 1;
 				BP = stack[SP + 3];
 				PC = stack[SP + 4];
@@ -120,22 +126,24 @@ int main(int argc, char *argv[])
 
 			case(3):
 				// loads the value into a register from a stack location at offset M and level L
-				// printf("LOD %d, %d, %d\n",code[i]->R, code[i]->L, code[i]->M);
-				IR.R = stack[base(IR, IR.L, stack, BP) + IR.M];
+				printf("LOD %d, %d, %d\t",IR.R, IR.L, IR.M);
+				IR.R = stack[base(IR.L, stack, BP) + IR.M];
 				break;
 
 			case(4):
 				// store the value in the stack at offset M and level L
-				// printf("STO %d, %d, %d\n",code[i]->R, code[i]->L, code[i]->M);
-				registerFile[IR.R] = stack[base(IR, IR.L, stack, BP) + IR.M];
+				printf("STO %d, %d, %d\t",IR.R, IR.L, IR.M);
+				stack[base(IR.L, stack, BP) + IR.M] = registerFile[IR.R];
 				break;
 
 			case(5):
+				// !! Messed Up !!
+
 				// call a procedure at index M
 				// generates a new activation record
-				// printf("CAL 0, %d, %d\n", code[i]->L, code[i]->M);
+				printf("CAL 0, %d, %d\t", IR.L, IR.M);
 				stack[SP + 1] = 0;	// space return value
-				stack[SP + 2] = base(IR, IR.L, stack, BP); 	// static link (SL)
+				stack[SP + 2] = base(IR.L, stack, BP); 	// static link (SL)
         stack[SP + 3] = BP;	// dynamic link (DL)
 	      stack[SP + 4] = PC;	 		// return address (RA)
         BP = SP + 1;
@@ -146,39 +154,39 @@ int main(int argc, char *argv[])
 			case(6):
 				// allocate M locals, increment stack pointer by M
 				// first four values are functional value, static link, dyn. link, and return addr.
-				printf("INC 0, 0, %d\n", code[IR.R].M);
+				printf("INC 0, 0, %d\t", IR.M);
 				SP = SP + IR.M;
 				break;
 
 			case(7):
 				// jump to instruction M
-				printf("JMP 0, 0, %d\n", code[IR.R].M);
+				printf("JMP 0, 0, %d\t", IR.M);
 				PC = IR.M;
 				break;
 
 			case(8):
 				// jump to instruction M if R == 0
-				printf("JPC %d, 0, %d\n", code[IR.R].R, code[IR.R].M);
+				printf("JPC %d, 0, %d\t", IR.R, IR.M);
 				if (registerFile[IR.M] == 0)
 					PC = IR.M;
 				break;
 
 			case(9):
 				// write a register to the screen
-				printf("SIO %d, 0, 1\n", code[IR.R].R);
+				printf("SIO %d, 0, 1\t", IR.R);
 				printf("%d", registerFile[IR.R]);
 				break;
 
 			case(10):
 				// read input from the user and store it in the register
-				printf("SIO %d, 0, 2\n", code[IR.R].R);
+				printf("SIO %d, 0, 2\t", IR.R);
 				int reg = IR.R;
 				scanf("%d", &registerFile[reg]);
 				break;
 
 			case(11):
 				// set halt flag to 1, end of program
-				printf("SIO 0, 0, 3\n");
+				printf("SIO 0, 0, 3\t");
 				return 1;
 				break;
 
@@ -251,27 +259,20 @@ int main(int argc, char *argv[])
 				break;
 		}
 
-		printf("\n");
-
 		if (IR.OP == 2)
 			activationRecord[SP] = 0;
 
 		if (IR.OP == 5)
 			activationRecord[SP] = 1;
 
-		for (int i = 0; i < SP; i ++)
-		{
-			if (activationRecord[SP] == 0)
-				printf(" ");
-			if (activationRecord[SP] == 1)
-				printf("|");
-
-		}
-		printf("\n");
-		print_state(IR, stack, PC, BP, SP, registerFile);
+		print_state(IR, stack, PC, BP, SP, registerFile, activationRecord);
 		if (PC == numLines)
-			halt ++;
+			halt=1;
 
+		// for debugging
+		char tmp;
+		scanf("%c", &tmp);
+		printf("\n");
 
 	}
 
@@ -336,13 +337,12 @@ instruction * get_instructions(FILE * fp, int numLines)
 		i++;
 	}
 
-
 	return code;
 }
 
 
 
-void print_state(instruction IR, int * stack, int PC, int BP, int SP, int * registerFile)
+void print_state(instruction IR, int * stack, int PC, int BP, int SP, int * registerFile, int * activationRecord)
 {
 	printf("PC: %d\tBP: %d\tSP: %d\tregisters: ", PC, BP, SP);
 	for (int i = 0; i < 8; i ++)
@@ -350,6 +350,14 @@ void print_state(instruction IR, int * stack, int PC, int BP, int SP, int * regi
 
 	printf("\n");
 
+	for (int i = 0; i < SP; i ++)
+	{
+		printf("%d", stack[i]);
+		if (activationRecord[i] == 1)
+			printf("|");
+		else
+			printf(" ");
+	}
 
 	for (int i = 0; i < SP; i++)
 		printf("%d ", stack[i]);
@@ -358,7 +366,7 @@ void print_state(instruction IR, int * stack, int PC, int BP, int SP, int * regi
 	return;
 }
 
-int base(instruction IR, int l, int * stack, int BP)
+int base(int l, int * stack, int BP)
 {
 	// defined in instructions
 
