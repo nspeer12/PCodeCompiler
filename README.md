@@ -6,7 +6,11 @@
 * The file takes in an input file of "input.txt". 
 * Example Compile Command in Terminal:  
 'gcc vm.c  
-./a.out input.txt'
+./a.out input.txt'  
+
+**The program outputs information to the console only.**
+
+
 
 
  
