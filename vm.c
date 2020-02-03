@@ -1,3 +1,7 @@
+// Created By: 
+// Stephen Speer
+// Danish Siddiqui
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
