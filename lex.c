@@ -2,15 +2,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-// REad a source porgram written in PL/0,
+// Read a source porgram written in PL/0,
 // identify errors
 // output source program, lexeme table, and list of lexemes
 
+int echoFile(char * filename);
 
 typedef struct lexeme
 {
-		char * name;
-		int type;
+	char * name;
+	int type;
 }lexeme;
 
 
@@ -21,88 +22,105 @@ int main(int argc, char *argv[])
 {
 	// echo program
 	// File IO
-	FILE * fp;
 
+
+	int len;
+	FILE * fp;
 	if (argc > 0)
 	{
+		len = echoFile(argv[1]);
 		fp = fopen(argv[1], "r");
 	}
 
-	int lexLen = 256;
-	lexeme ** lexTable = malloc(sizeof(lexeme *) * lexLen);
 
-	for (int i = 0; i < lexLen; i++)
+
+	lexeme ** lexTable = malloc(sizeof(lexeme *) * len);
+
+	for (int i = 0; i < len; i++)
 	{
 		lexTable[i] = malloc(sizeof(lexeme));
+		lexTable[i]->name = malloc(sizeof(char) * 12);
 	}
 
 	int k = 0; // keep track of lexeme table index
-
-	int i = 0;
-	char tmp;
-	char * buffer = malloc(sizeof(char) * 64); // 63 charcter buffer
+	int i = 0; // buffer index
+	char tmp = fgetc(fp);
+	// buffer of size 12 because max variable length is 11
+	char * buffer = malloc(sizeof(char) * 12);
 
 	while(!feof(fp))
 	{
-		tmp = fgetc(fp);
 
 		if (tmp == ',')
 		{
 			insertTable(lexTable, buffer, k++);
-			//insertTable(lexTable, ",", k++);
-			i = 0;
-		}
-		else if (tmp == ' ')
-		{
-			insertTable(lexTable, buffer, k++);
+			for (int i = 0; i < 12; i ++)
+				buffer[i] = '\0';
+			insertTable(lexTable, ",", k++);
 			i = 0;
 		}
 		else if (tmp == ';')
 		{
 			insertTable(lexTable, buffer, k++);
-			//insertTable(lexTable, ";", k++);
+			for (int i = 0; i < 12; i ++)
+				buffer[i] = '\0';
+
+			insertTable(lexTable, ";", k++);
 			i = 0;
 		}
-		else if (tmp == '\n')
+		else if (tmp == '\n' || tmp == '\t' || tmp == ' ')
 		{
-			//insertTable(lexTable, buffer, k++);
+			insertTable(lexTable, buffer, k++);
+			for (int i = 0; i < 12; i ++)
+				buffer[i] = '\0';
 			i = 0;
 		}
 		else
 		{
 			buffer[i] = tmp;
-			buffer[i+1] = '\0';
+			buffer[++i] = '\0';
 		}
-		printLexTable(lexTable, k);
-		printf("\n");
+		tmp = fgetc(fp);
+
 	}
 
-	printLexTable(lexTable, 5);
+	for(int x = 0; x < k; x ++)
+	{
+		printf("%s\n", lexTable[x]->name);
+	}
+
+	// printLexTable(lexTable, 5);
 
 	return 0;
 }
 
 
-void insertTable(lexeme ** lexTable, char * buffer, int k)
+int echoFile(char * filename)
 {
-	// 12 character name, for now
-	lexTable[k]->name = malloc(sizeof(char) * 12);
-	// because strcpy is a steaming pile of shit
-	strcpy(lexTable[k]->name, buffer);
-	//printf("%s\n", lexTable[k]->name);
-	// temporarily use this for now
-	lexTable[k]->type = k;
+	int len = 0;
 
-	return;
+	FILE * fp = fopen(filename, "r");
+
+	while(!feof(fp))
+	{
+
+		printf("%c", fgetc(fp));
+		len++;
+	}
+
+	fclose(fp);
+	return len;
 }
 
-
-void printLexTable(lexeme ** lexTable, int k)
+void insertTable(lexeme ** lexTable, char * buffer, int k)
 {
-	int x = 0;
-
-	while(lexTable[x++]->name != NULL)
+	if (buffer[0] != '\0')
 	{
-		printf("%s\t%d\n", lexTable[x]->name, lexTable[x]->type);
+		strcpy(lexTable[k]->name, buffer);
+		//printf("%s\n", lexTable[k]->name);
+		// temporarily use this for now
+		lexTable[k]->type = k;
 	}
+
+	return;
 }
