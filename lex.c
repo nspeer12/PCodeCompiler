@@ -270,7 +270,6 @@ void identify(char temp[], int ssym[], int *lexemesLength)
       else
       {
         printf("%d\n",ssym[temp[0]]);
-
         current.type = ssym[temp[0]];
         strcpy(current.name,temp);
         masterArray[*lexemesLength] = current;
@@ -278,22 +277,52 @@ void identify(char temp[], int ssym[], int *lexemesLength)
     }
     else if(isALetter(temp[0]))
     {
-      printf("%d\n",identsym);
+      if(strlen(temp)>11)
+      {
+        // Throw ERROR # 3.
+        printf("ERROR #3: Name longer than 11 chars.\n");
+      }
+      else
+      {
+        printf("%d\n",identsym);
+        current.type = identsym;
+        strcpy(current.name,temp);
+        masterArray[*lexemesLength] = current;
+      }
 
-      current.type = identsym;
-      strcpy(current.name,temp);
-      masterArray[*lexemesLength] = current;
     }
     else if(isANumber(temp[0]))
     {
-      printf("%d\n", numbersym);
-      current.type = numbersym;
-      strcpy(current.name,temp);
-      masterArray[*lexemesLength] = current;
+      int falseCount = 0;
+      int k;
+
+      for(k =0; k<strlen(temp); k++)
+        if(!isANumber(temp[k]))
+          falseCount++;
+
+      if(falseCount>0)
+      {
+        // Throw Error #1
+        printf("ERROR #1: Variable Starts with a Number!\n");
+      }
+      if(strlen(temp)>5)
+      {
+        // Throw ERROR # 2.
+        printf("ERROR #2: Number longer than 5 digits!\n");
+      }
+      else
+      {
+        printf("%d\n", numbersym);
+        current.type = numbersym;
+        strcpy(current.name,temp);
+        masterArray[*lexemesLength] = current;
+      }
+
     }
     else
     {
-      printf("I'm NOT SURE!\n");
+      // Throw Error 4
+      printf("ERROR #4 : Invalid Symbol.\n");
     }
 
     for(z = 0; z < 15; z++)
