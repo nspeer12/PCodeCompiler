@@ -94,8 +94,12 @@ void evaluateTokens(char charArray[])
     // get to a letter.
     if(c == ' ')
     {
-      identify(temp,ssym,&lexemesLength);
-      lexemesLength++;
+      if(strlen(temp)>0)
+      {
+        identify(temp,ssym,&lexemesLength);
+        lexemesLength++;
+      }
+
     }
     else if(isSpecialSymbol(c))
     {
