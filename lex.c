@@ -18,9 +18,9 @@ int getNumChars(FILE *fp);
 void populateCharArray(char charArray[], int numOfChars, FILE *fp);
 void cleanInput(int numOfChars, char charArray[]);
 void evaluateTokens(char charArray[]);
-int isALetter(char ch);
-int isADigit(char ch);
-int isSpecialWord(char temp[]);
+int isALetter(char c);
+int isANumber(char c);
+int isReservedWord(char temp[]);
 void identify(char temp[], int ssym[], int *lexemesLength);
 void printLexemeList(int *lexemesLength);
 int isSpecialSymbol(char c);
@@ -203,28 +203,26 @@ int getNumChars(FILE *fp)
 
   return i;
 }
-int isADigit(char ch)
+int isANumber(char c)
 {
-    int value = ch - '0';
+    int value = c - '0';
     if(value >=0 && value < 10)
         return 1;
     return 0;
 }
-int isALetter(char ch)
+int isALetter(char c)
 {
-    //checks lowercase
-    int value = ch - 'a';
+    int value = c - 'a';
     if(value >= 0 && value < 26)
         return 1;
 
-    //checks uppercase
-    int value2 = ch - 'A';
+    int value2 = c - 'A';
     if(value2 >= 0 && value2 < 26)
         return 1;
 
     return 0;
 }
-int isSpecialWord(char temp[])
+int isReservedWord(char temp[])
 {
     int i;
     for(i = 0; i < 15; i++)
@@ -247,11 +245,11 @@ void identify(char temp[], int ssym[], int *lexemesLength)
 
     // perform checks to see what temp qualifies as.
     // Does it qualify as a special word?
-    if(isSpecialWord(temp) > 0)
+    if(isReservedWord(temp) > 0)
     {
-      printf("%d\n",isSpecialWord(temp));
+      printf("%d\n",isReservedWord(temp));
 
-      current.type = isSpecialWord(temp);
+      current.type = isReservedWord(temp);
       strcpy(current.name,temp);
       masterArray[*lexemesLength] = current;
 
@@ -286,7 +284,7 @@ void identify(char temp[], int ssym[], int *lexemesLength)
       strcpy(current.name,temp);
       masterArray[*lexemesLength] = current;
     }
-    else if(isADigit(temp[0]))
+    else if(isANumber(temp[0]))
     {
       printf("%d\n", numbersym);
       current.type = numbersym;
