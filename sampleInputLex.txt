@@ -1,0 +1,6 @@
+/* input for lex.c */
+var x, y;
+begin
+  y := 3;
+  x := y + 56;
+end.
