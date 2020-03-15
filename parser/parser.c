@@ -62,7 +62,8 @@ int main(int argc, char ** argv)
     bool lex, asmbl, vm = 0;
 
 
-
+	 /*
+	 *** COMMAND LINE ARG HANDLING
     // check for inputs and assign flags
     for (int i = 1; i < argc; i++)
     {
@@ -86,6 +87,7 @@ int main(int argc, char ** argv)
             printf("\t-v: print the virtual machine execution trace\n");
         }
     }
+	 */
 
     /* Parser
         - read the output of the Lex scanner (hw2)
@@ -102,6 +104,7 @@ int main(int argc, char ** argv)
 
 
     parser("tmp/lex.output.txt");
+
     return 0;
 }
 
@@ -111,7 +114,9 @@ void parser(char * filename)
     int tokenLen = 256;
     // get length
     int fileLen = 0;
+
     FILE * fp = fopen(filename, "r");
+
     while(!feof(fp))
     {
         fgetc(fp);
@@ -123,7 +128,9 @@ void parser(char * filename)
     // Lex file IO
     char * lexInput = malloc(sizeof(char) * fileLen);
     fp = fopen(filename, "r");
-    int i = 0;
+
+
+	 int i = 0;
     char tmp;
     while(!feof(fp))
     {
@@ -145,36 +152,30 @@ void parser(char * filename)
     head->next = NULL;
 
     // split lex input file into tokens
-
-    char * toks = strtok(lexInput, "\t\n");
+    char * toks = strtok(lexInput, " ");
 
     // count tokens
     while(toks != NULL)
     {
-        toks = strtok(NULL, "\t\n");
-        printf("%s\n", toks);
-        if (toks != NULL)
-            insertTail(head, toks);
+      toks = strtok(NULL, " ");
+
+      if (toks != NULL)
+		{
+	      insertTail(head, toks);
+		}
 
     }
 
     printList(head);
-
-    // Use this monstrosity to evaluate those god awful symbol names
-
-    int ssym[256];
-    ssym['+'] = plussym; ssym['-'] = minussym; ssym['*'] = multsym;
-    ssym['/'] = slashsym; ssym['('] = lparentsym; ssym[')'] = rparentsym;
-    ssym['='] = eqlsym; ssym[','] = commasym; ssym['.'] = periodsym;
-    ssym['#'] = neqsym; ssym['<'] = lessym; ssym['>'] = gtrsym;
-    ssym['$'] = leqsym; ssym['%'] = geqsym; ssym[';'] = semicolonsym;
 
     return;
 }
 
 void insertTail(token * head, char * name)
 {
-    token * tmp = head;
+	 token * tmp = head;
+
+	 // traverse to the end of the linked list
     while(tmp->next != NULL)
     {
         tmp = tmp->next;
