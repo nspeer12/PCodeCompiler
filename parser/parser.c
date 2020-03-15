@@ -27,8 +27,6 @@ typedef enum
     thensym = 24, whilesym = 25, dosym = 26, callsym = 27, constsym = 28, varsym = 29, procsym = 30, writesym = 31,
     readsym = 32, elsesym = 33
 
-
-
 } token_type;
 
 char *word[] =
@@ -103,7 +101,7 @@ int main(int argc, char ** argv)
    */
 
 
-    parser("tmp/lex.output.txt");
+    parser("tmp/lex.type.output");
 
     return 0;
 }
@@ -166,9 +164,15 @@ void parser(char * filename)
 
     }
 
-    printList(head);
+   // psuedocode implementation
+
 
     return;
+}
+
+int program(token * tok)
+{
+
 }
 
 void insertTail(token * head, char * name)
