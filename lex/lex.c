@@ -366,13 +366,18 @@ void printLexemeList(int *lexemesLength)
 
 void writeLexemeList(int *lexemesLength)
 {
-	FILE * fp = fopen("tmp/lex.output.txt", "w");
+	FILE * typeFile = fopen("tmp/lex.type.output", "w");
+	FILE * nameFile = fopen("tmp/lex.name.output", "w");
 
 	for(int i = 0; i< *lexemesLength; i++)
 	{
-		fprintf(fp, "%d ",masterArray[i].type);
+		fprintf(typeFile, "%d ",masterArray[i].type);
+		fprintf(nameFile, "%s ",masterArray[i].name);
+
+		/*
 		if(masterArray[i].type == numbersym || masterArray[i].type == identsym)
 			fprintf(fp, "%s ",masterArray[i].name);
+		*/
 	}
 	printf("\n");
 }
