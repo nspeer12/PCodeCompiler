@@ -23,20 +23,23 @@ do
     esac
 done
 
-True = "true"
-False = "false"
 
 # Need to change to True/False instead of 0 or 1
-echo "# Output Lex: $LEX"
-echo "# Output Assembly: $ASSEMBLY"
-echo "# Execute on VM: $VM"
+#echo "# Output Lex: $LEX"
+#echo "# Output Assembly: $ASSEMBLY"
+#echo "# Execute on VM: $VM"
 
 
 # compile Lex and input file and output to temporary location to feed to Parser
 gcc lex/lex.c -o lex.o
 
 # hardcode lex input for now
-./lex.o lex/input01.txt
+if [ $LEX = "1" ]
+then
+	./lex.o lex/input03.txt -l
+else
+	./lex.o lex/input03.txt
+fi
 
 # compile parser
 # TODO: handle input arguments

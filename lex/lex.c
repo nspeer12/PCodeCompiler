@@ -17,14 +17,14 @@ lexeme masterArray[10000];
 int getNumChars(FILE *fp);
 void populateCharArray(char * charArray, int numOfChars, char * filename);
 void cleanInput(int numOfChars, char charArray[]);
-void evaluateTokens(char charArray[]);
+void evaluateTokens(char charArray[], int print);
 int isALetter(char c);
 int isANumber(char c);
 int isReservedWord(char temp[]);
-void identify(char temp[], int ssym[], int *lexemesLength);
+void identify(char temp[], int ssym[], int *lexemesLength, int print);
 void printLexemeList(int *lexemesLength);
 int isSpecialSymbol(char c);
-int echoFile(char * filename);
+int echoFile(char * filename, int print);
 char * getReservedWordName(char temp[]);
 char * getReservedSymName(char t);
 void writeLexemeList(int *lexemesLength);
@@ -60,12 +60,20 @@ int main(int argc, char *argv[])
 		int i =0;
 		int numOfChars;
 		char * charArray;
+
+		int print = 0;
+
 		if (argc > 0)
 		{
-			numOfChars = echoFile(argv[1]);
+			if (argc == 3)
+			{
+				if (strcmp(argv[2], "-l") == 0)
+					print = 1;
+			}
+
+			numOfChars = echoFile(argv[1], print);
 			charArray = malloc(sizeof(char) * (numOfChars  + 2));
 			populateCharArray(charArray, numOfChars, argv[1]);
-
 		}
 		else
 		{
@@ -74,7 +82,7 @@ int main(int argc, char *argv[])
 
 		// clears up all comments, \n and tabs.
 		cleanInput(numOfChars, charArray);
-		evaluateTokens(charArray);
+		evaluateTokens(charArray, print);
 }
 char * getReservedSymName(char t)
 {
@@ -135,6 +143,7 @@ char * getReservedSymName(char t)
 
 	return result;
 }
+
 char * getReservedWordName(char temp[])
 {
 	/*
@@ -198,9 +207,12 @@ char * getReservedWordName(char temp[])
 	}
 	return result;
 }
-void evaluateTokens(char charArray[])
+
+void evaluateTokens(char charArray[], int print)
 {
-	printf("Lexeme Table: \n");
+	if (print)
+		printf("Lexeme Table: \n");
+
 	int lexemesLength = 0 ;
 	int ssym[256];
 	ssym['+'] = plussym; ssym['-'] = minussym; ssym['*'] = multsym;
@@ -209,7 +221,8 @@ void evaluateTokens(char charArray[])
 	ssym['#'] = neqsym; ssym['<'] = lessym; ssym['>'] = gtrsym;
 	ssym['$'] = leqsym; ssym['%'] = geqsym; ssym[';'] = semicolonsym;
 
-	printf("lexeme\ttoken type\n");
+	if (print)
+		printf("lexeme\ttoken type\n");
 
 	int i = 0, z =0;
 	char temp[15];
@@ -224,7 +237,7 @@ void evaluateTokens(char charArray[])
 		{
 			if(strlen(temp)>0)
 			{
-				identify(temp,ssym,&lexemesLength);
+				identify(temp,ssym,&lexemesLength, print);
 				lexemesLength++;
 			}
 
@@ -237,20 +250,20 @@ void evaluateTokens(char charArray[])
 				{
 					temp[strlen(temp)] = c;
 					temp[strlen(temp)] = charArray[++i];
-					identify(temp,ssym,&lexemesLength);
+					identify(temp,ssym, &lexemesLength, print);
 					lexemesLength++;
 				}
 				else
 				{
 					temp[strlen(temp)] = c;
-					identify(temp,ssym,&lexemesLength);
+					identify(temp,ssym, &lexemesLength, print);
 					lexemesLength++;
 				}
 
 			}
 			else
 			{
-				identify(temp,ssym,&lexemesLength);
+				identify(temp, ssym, &lexemesLength, print);
 				lexemesLength++;
 				i--;
 			}
@@ -261,9 +274,12 @@ void evaluateTokens(char charArray[])
 		}
 	}
 
-	printLexemeList(&lexemesLength);
+	if (print)
+		printLexemeList(&lexemesLength);
+
 	writeLexemeList(&lexemesLength);
 }
+
 void cleanInput(int numOfChars, char charArray[])
 {
 	 int i;
@@ -368,20 +384,22 @@ int isReservedWord(char temp[])
 		return 0;
 }
 
-void identify(char temp[], int ssym[], int *lexemesLength)
+void identify(char temp[], int ssym[], int *lexemesLength, int print)
 {
 	int z = 0;
 	lexeme current;
 
 	if(strlen(temp) > 0)
 	{
-		printf("%s\t",temp);
+		if (print)
+			printf("%s\t",temp);
 
 		// perform checks to see what temp qualifies as.
 		// Does it qualify as a special word?
 		if(isReservedWord(temp) > 0)
 		{
-			printf("%d\n",isReservedWord(temp));
+			if (print)
+				printf("%d\n",isReservedWord(temp));
 
 			current.type = isReservedWord(temp);
 			strcpy(current.name,getReservedWordName(temp));
@@ -395,7 +413,8 @@ void identify(char temp[], int ssym[], int *lexemesLength)
 			{
 				if(temp[1]=='=')
 				{
-					printf("%d\n",becomessym);
+					if (print)
+						printf("%d\n",becomessym);
 
 					current.type = becomessym;
 					strcpy(current.name,"becomessym");
@@ -405,7 +424,9 @@ void identify(char temp[], int ssym[], int *lexemesLength)
 			}
 			else
 			{
-				printf("%d\n",ssym[temp[0]]);
+				if (print)
+					printf("%d\n",ssym[temp[0]]);
+
 				current.type = ssym[temp[0]];
 				strcpy(current.inputValue,temp);
 				strcpy(current.name,getReservedSymName(temp[0]));
@@ -421,7 +442,9 @@ void identify(char temp[], int ssym[], int *lexemesLength)
 			}
 			else
 			{
-				printf("%d\n",identsym);
+				if (print)
+					printf("%d\n",identsym);
+
 				current.type = identsym;
 				strcpy(current.inputValue,temp);
 				strcpy(current.name,"identsym");
@@ -450,7 +473,9 @@ void identify(char temp[], int ssym[], int *lexemesLength)
 			}
 			else
 			{
-				printf("%d\n", numbersym);
+				if (print)
+					printf("%d\n", numbersym);
+
 				current.type = numbersym;
 				strcpy(current.name,"numbersym");
 				strcpy(current.inputValue,temp);
@@ -481,22 +506,26 @@ int isSpecialSymbol(char c)
 }
 
 
-int echoFile(char * filename)
+int echoFile(char * filename, int print)
 {
 	int len = 0;
 
 	FILE * fp = fopen(filename, "r");
 	int tmp;
 
-	printf("Source Program:\n");
+	if (print)
+		printf("Source Program:\n");
 
 	while((tmp = fgetc(fp)) != EOF)
 	{
-		printf("%c", tmp);
+		if(print)
+			printf("%c", tmp);
 		len++;
 	}
 
-	printf("\n");
+	if (print)
+		printf("\n");
+
 	fclose(fp);
 	return len;
 }
@@ -512,8 +541,8 @@ void writeLexemeList(int *lexemesLength)
 	for(int i = 0; i < *lexemesLength; i++)
 	{
 		fprintf(typeFile, "%d ",masterArray[i].type);
-		if(masterArray[i].type == numbersym || masterArray[i].type == identsym)
-			fprintf(typeFile, "%d ",masterArray[i].inputValue);
+		//if(masterArray[i].type == numbersym || masterArray[i].type == identsym)
+		//	fprintf(typeFile, "%d ",masterArray[i].inputValue);
 
 		fprintf(nameFile, "%s ",masterArray[i].name);
 		if(masterArray[i].type == numbersym || masterArray[i].type == identsym)
