@@ -509,15 +509,15 @@ void writeLexemeList(int *lexemesLength)
 	FILE * typeFile = fopen("tmp/lex.type.output", "w");
 	FILE * nameFile = fopen("tmp/lex.name.output", "w");
 
-	for(int i = 0; i< *lexemesLength; i++)
+	for(int i = 0; i < *lexemesLength; i++)
 	{
-		fprintf(typeFile, "%d\t",masterArray[i].type);
-		if(masterArray[i].type == numbersym || masterArray[i].type == identsym)
-			fprintf(typeFile, "%s\t",masterArray[i].inputValue);
+		fprintf(typeFile, "%d ",masterArray[i].type);
+		//if(masterArray[i].type == numbersym || masterArray[i].type == identsym)
+		//	fprintf(typeFile, "%s ",masterArray[i].inputValue);
 
-		fprintf(nameFile, "%s\t",masterArray[i].name);
-		if(masterArray[i].type == numbersym || masterArray[i].type == identsym)
-			fprintf(nameFile, "%s\t",masterArray[i].inputValue);
+		fprintf(nameFile, "%s ",masterArray[i].name);
+		//if(masterArray[i].type == numbersym || masterArray[i].type == identsym)
+		//	fprintf(nameFile, "%s ",masterArray[i].inputValue);
 
 	}
 	printf("\n");
