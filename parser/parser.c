@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <ctype.h>
 
 typedef struct
 {
@@ -14,8 +15,8 @@ typedef struct
 
 typedef struct token
 {
-    char type[12];
-    char name[12];
+    int type;
+    char * name;
     struct token * next;
 } token;
 
@@ -42,50 +43,19 @@ int wsym [] = {
 
 char symbols[] = {'+', '-', '*', '/', '(', ')', '=', ',', '.', '<', '>', ';', ':'};
 
-void parser(char * filename);
-void insertTail(token * head, char * name);
+void parser(char * nameFile, char * typeFile);
+void insertTail(token * head, char * name, int type);
 void printList(token * head);
+int getFileLen(char * filename);
+char * fileToArr(char * filename);
+void parser(char * nameFile, char * typeFile);
+token * getTokenList(char * nameFile, char * typeFile);
 
 int main(int argc, char ** argv)
 {
 
     int MAX_SYMBOL_TABLE_SIZE = 256; // Need to check this
     symbol symbol_table[MAX_SYMBOL_TABLE_SIZE];
-
-
-    // needs to take in flags
-        // -l: print the list of lexemes/tokens
-        // -a: print the generated assembly code (parser/codegen output)
-        // -v: print virtual machine execution trace
-    bool lex, asmbl, vm = 0;
-
-
-	 /*
-	 *** COMMAND LINE ARG HANDLING
-    // check for inputs and assign flags
-    for (int i = 1; i < argc; i++)
-    {
-        if (strcmp("-l", argv[i]) == 0)
-        {
-            lex = true;
-        }
-        else if (strcmp("-a", argv[i]) == 0)
-        {
-            asmbl = true;
-        }
-        else if (strcmp("-v", argv[i]) == 0)
-        {
-            vm = true;
-        }
-        else
-        {
-            printf("Please enter valid flags:\n");
-            printf("\t-l: print the list of lexemes/tokens\n");
-            printf("\t-a: print the generated assembly code\n");
-            printf("\t-v: print the virtual machine execution trace\n");
-        }
-    }
-	 */
 
     /* Parser
         - read the output of the Lex scanner (hw2)
@@ -100,69 +70,27 @@ int main(int argc, char ** argv)
         - execute the VM
    */
 
-
-    parser("tmp/lex.type.output");
+    parser("tmp/lex.name.output", "tmp/lex.type.output");
 
     return 0;
 }
 
-void parser(char * filename)
+
+
+
+void parser(char * nameFile, char * typeFile)
 {
+	printf("*** PARSER ***\n");
     // dynamically allocated based on how many tokens there are
     int tokenLen = 256;
     // get length
-    int fileLen = 0;
 
-    FILE * fp = fopen(filename, "r");
-
-    while(!feof(fp))
-    {
-        fgetc(fp);
-        fileLen++;
-    }
-    fclose(fp);
-
-
+	 token * list = getTokenList(nameFile, typeFile);
+	 //printList(list);
     // Lex file IO
-    char * lexInput = malloc(sizeof(char) * fileLen);
-    fp = fopen(filename, "r");
 
 
-	 int i = 0;
-    char tmp;
-    while(!feof(fp))
-    {
-        tmp = fgetc(fp);
-        if (tmp == EOF)
-            break;
-        else
-        {
-            lexInput[i++] = tmp;
-        }
 
-        printf("%c", tmp);
-    }
-
-    // create a new linked list to store tokens
-    token * head = malloc(sizeof(token));
-    strcpy(head->name, "head");
-    strcpy(head->type, "type");
-    head->next = NULL;
-
-    // split lex input file into tokens
-    char * toks = strtok(lexInput, " ");
-
-    // count tokens
-    while(toks != NULL)
-    {
-      toks = strtok(NULL, " ");
-
-      if (toks != NULL)
-		{
-	      insertTail(head, toks);
-		}
-
-    }
 
    // psuedocode implementation
 
@@ -170,28 +98,90 @@ void parser(char * filename)
     return;
 }
 
-int program(token * tok)
+token * getTokenList(char * nameFile, char * typeFile)
 {
 
+
+		// create a new linked list to store tokens
+		token * head = malloc(sizeof(token));
+		head->name = malloc(sizeof(char) * 13);
+		head->type = -1;
+
+		strcpy(head->name, "head");
+		head->type = 0;
+		head->next = NULL;
+
+		char * nameArr = fileToArr(nameFile);
+		char * namePtr = nameArr;
+
+		char * typeArr = fileToArr(typeFile);
+
+		char * typePtr = typeArr;
+		char * nameTok, * typeTok;
+
+		// iterate through tokens and build linked list
+
+
+		while( (nameTok = strtok_r(namePtr, " ", &namePtr)) && (typeTok = strtok_r(typePtr, " ", &typePtr)) )
+		{
+
+			char * tmpStr = malloc(sizeof(char) * 13);
+			strcpy(tmpStr, nameTok);
+
+			int tmpType = atoi(typeTok);
+
+			//printf("%s\t%d\n", tmpStr, tmpType);
+
+			// insert into tail of linked list
+			token * tmp = head;
+
+			while(tmp->next != NULL)
+				tmp = tmp->next;
+
+			tmp->next = malloc(sizeof(token));
+			tmp->next->name = tmpStr;
+			tmp->next->type = tmpType;
+			tmp->next->next = NULL;
+
+			//printf("%s\t%d\n", tmp->next->name, tmp->next->type);
+		}
+
+		token * tmp = head;
+
+		// print list
+		while(tmp != NULL)
+		{
+			printf("%s\t%d\n", tmp->name, tmp->type);
+			tmp = tmp->next;
+		}
+
+
+	return head;
 }
 
-void insertTail(token * head, char * name)
-{
-	 token * tmp = head;
 
-	 // traverse to the end of the linked list
-    while(tmp->next != NULL)
-    {
-        tmp = tmp->next;
-    }
+void insertTail(token * head, char * name, int type)
+{
+	token * tmp = head;
+
+	// traverse to the end of the linked list
+   while(tmp->next != NULL)
+   {
+       tmp = tmp->next;
+   }
 
     // add a token at the end of the linked list
-    tmp->next = malloc(sizeof(token));
-    strcpy(tmp->next->name, name);
+   tmp->next = malloc(sizeof(token));
 
-    // identify what type it's going to be
-    strcpy(tmp->next->type, "test");
-    tmp->next->next = NULL;
+	strcpy(tmp->next->name, name);
+	//strcpy(tmp->next->type, type);
+	//tmp->next->type = malloc(sizeof(int));
+	tmp->next->type = type;
+	tmp->next->next = NULL;
+
+//	printf("%-12s\t\%s\n", tmp->name, tmp->type);
+
+	 return;
 }
 
 void printList(token * head)
@@ -200,9 +190,46 @@ void printList(token * head)
 
     while(tmp != NULL)
     {
-        printf("%s\t%s\n", tmp->name, tmp->type);
+        printf("%-12s\t\%s\n", tmp->name, tmp->type);
         tmp = tmp->next;
     }
 
    printf("END OF LIST\n");
+}
+
+int getFileLen(char * filename)
+{
+	int fileLen = 0;
+	FILE * fp = fopen(filename, "r");
+
+	while(!feof(fp))
+	{
+		fgetc(fp);
+		fileLen++;
+	}
+
+	fclose(fp);
+	return fileLen;
+}
+
+char * fileToArr(char * filename)
+{
+	char * arr = malloc(sizeof(char) * getFileLen(filename));
+	FILE * fp = fopen(filename, "r");
+	char tmp;
+
+	int i = 0;
+
+	while(!feof(fp))
+	{
+		tmp = fgetc(fp);
+		if (tmp == EOF)
+		break;
+		else
+		{
+			arr[i++] = tmp;
+		}
+	}
+
+	return arr;
 }
