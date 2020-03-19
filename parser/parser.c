@@ -4,13 +4,14 @@
 #include <string.h>
 #include <ctype.h>
 
-typedef struct
+typedef struct symbol
 {
     int kind;       // const = 1, var = 2, proc = 3
     char name[12];  // name (up to 11 chars)
     int val;        // initial value
     int level;      // Lexicographical level
     int addr;       // Mem address
+	 struct symbol * next; // for linked list
 } symbol;
 
 typedef struct token
@@ -96,11 +97,16 @@ void parser(char * nameFile, char * typeFile)
 	// get linked list with tokens
 	token * head = getTokenList(nameFile, typeFile);
 	printList(head);
-
 	printf("\n");
 
+	// create symbol table
+		// symbol table is a linked list with head insertions
+		// I don't give a fuck about runtime here
+
+	symbol * sym;
+
 	// get the first token from the list
-	token * tok = head->next;
+	token * tok = head;
 	program(tok);
    // psuedocode implementation
     return;
@@ -109,12 +115,12 @@ void parser(char * nameFile, char * typeFile)
 token * program(token * tok)
 {
 	printf("\t***\tPROGRAM\t***\n");
-
+	tok = fetch(tok);
 	if (tok == NULL)
 	{
 		return NULL;
 	}
-	else if (strcmp(tok->name, "beginsym") ==0)
+	else
 	{
 		tok = block(tok);
 		if (strcmp(tok->name, "periodsym") != 0)
@@ -126,10 +132,11 @@ token * program(token * tok)
 token * block(token * tok)
 {
 
-	printf("\t***\tBLOCK\t***\n");
+	printf("\t***\tBLOCK\t***", tok->name);
 
 	if (strcmp(tok->name, "constsym") == 0)
 	{
+		tok = fetch(tok);
 		while(strcmp(tok->name, "commasym") == 0)
 		{
 			if (strcmp(tok->name,"identsym") != 0)
@@ -206,17 +213,6 @@ token * block(token * tok)
 		{
 			tok = fetch(tok);
 		}
-
-		tok = block(tok);
-		if (strcmp(tok->name,"semicolonsym") != 0)
-		{
-			printf("semicolonsym error in block/procsym 2\n");
-			return NULL;
-		}
-		else
-		{
-			tok = fetch(tok);
-		}
 	}
 
 	tok = statement(tok);
@@ -235,7 +231,7 @@ token * statement(token * tok)
 		tok = fetch(tok);
 		if (strcmp(tok->name, "becomessym") != 0)
 		{
-			printf("becomessym error in statement/indentsym\n");
+			printf("becomessym error in statement/indentsym: %s\n", tok->name);
 			return NULL;
 		}
 		tok = fetch(tok);
@@ -421,10 +417,27 @@ token * fetch(token * tok)
 	}
 	else
 	{
+		printf("- %s ", tok->name);
 		tok = tok->next;
-		printf("* %s\n", tok->name);
+		printf("-> %s\n", tok->name);
 		return tok;
 	}
+}
+
+
+symbol * insertSym(symbol * sym, int kind, char * name, int val, int level, int addr)
+{
+		symbol * tmp = malloc(sizeof(symbol));
+		tmp->kind = kind;
+		strcpy(tmp->name, name);
+		tmp->val = val;
+		tmp->level = level;
+		tmp->addr = -69;
+		tmp->next = sym;
+		sym = tmp;
+
+		return sym;
+
 }
 
 token * getTokenList(char * nameFile, char * typeFile)
@@ -481,7 +494,6 @@ token * getTokenList(char * nameFile, char * typeFile)
 
 	return head;
 }
-
 
 void printList(token * head)
 {
