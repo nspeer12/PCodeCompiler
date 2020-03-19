@@ -511,13 +511,13 @@ void writeLexemeList(int *lexemesLength)
 
 	for(int i = 0; i< *lexemesLength; i++)
 	{
-		fprintf(typeFile, "%d ",masterArray[i].type);
+		fprintf(typeFile, "%d\t",masterArray[i].type);
 		if(masterArray[i].type == numbersym || masterArray[i].type == identsym)
-			fprintf(typeFile, "%s ",masterArray[i].inputValue);
+			fprintf(typeFile, "%s\t",masterArray[i].inputValue);
 
-		fprintf(nameFile, "%s ",masterArray[i].name);
+		fprintf(nameFile, "%s\t",masterArray[i].name);
 		if(masterArray[i].type == numbersym || masterArray[i].type == identsym)
-			fprintf(nameFile, "%s ",masterArray[i].inputValue);
+			fprintf(nameFile, "%s\t",masterArray[i].inputValue);
 
 	}
 	printf("\n");
