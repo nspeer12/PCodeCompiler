@@ -50,7 +50,7 @@ int getFileLen(char * filename);
 char * fileToArr(char * filename);
 void parser(char * nameFile, char * typeFile);
 token * getTokenList(char * nameFile, char * typeFile);
-
+token * fetch(token * tok);
 
 // parser functions
 token * block(token * tok);
@@ -97,9 +97,10 @@ void parser(char * nameFile, char * typeFile)
 	token * head = getTokenList(nameFile, typeFile);
 	printList(head);
 
+	printf("\n");
+
 	// get the first token from the list
 	token * tok = head->next;
-
 	program(tok);
    // psuedocode implementation
     return;
@@ -107,116 +108,114 @@ void parser(char * nameFile, char * typeFile)
 
 token * program(token * tok)
 {
-	printf("** PROGRAM **\n");
+	printf("\t***\tPROGRAM\t***\n");
+
 	if (tok == NULL)
+	{
 		return NULL;
-	else if (tok->name == "beginsym")
+	}
+	else if (strcmp(tok->name, "beginsym") ==0)
 	{
 		tok = block(tok);
-		if (tok->name != "periodsym")
+		if (strcmp(tok->name, "periodsym") != 0)
 			printf("I missed my period... I think I might be pregant\n");
 		printf("%s", tok->name);
 	}
-
-
-
-
 }
 
 token * block(token * tok)
 {
 
-	printf("** BLOCK **\n");
-	printf("%s", tok->name);
+	printf("\t***\tBLOCK\t***\n");
 
-	if (tok->name == "constsym")
+	if (strcmp(tok->name, "constsym") == 0)
 	{
-		while(tok->name == "commasym")
+		while(strcmp(tok->name, "commasym") == 0)
 		{
-			if (tok->name != "identsym")
+			if (strcmp(tok->name,"identsym") != 0)
 			{
 				printf("identsym error in block/constsym");
 				return NULL;
 			}
 
-			tok = tok->next;
+			tok = fetch(tok);
 
-			if (tok->name != "eqsym")
+			if (strcmp(tok->name,"eqsym") != 0)
 			{
 				printf("eqsym error in block/constsym\n");
 				return NULL;
 			}
 
-			tok = tok->next;
+			tok = fetch(tok);
 
-			if (tok->name != "numbersym")
+			if (strcmp(tok->name, "numbersym") != 0)
 			{
 				// insert into symbol table??
 				printf("numbersym error in block/constsym\n");
 				return NULL;
 			}
 
-			tok = tok->next;
+			tok = fetch(tok);
 		}
 	}
 
-	if (tok->name == "insym")
+	if (strcmp(tok->name, "insym") == 0)
 	{
-		while(tok->name == "commasym")
+		while(strcmp(tok->name, "commasym") == 0)
 		{
-			tok = tok->next;
-			if (tok->name != "identsym")
+			tok = fetch(tok);
+			if (strcmp(tok->name, "identsym") != 0)
 			{
 				printf("identsym error in block/insym\n");
 				return NULL;
 			}
 
-			tok = tok->next;
+			tok = fetch(tok);
 		}
 
-		if (tok->name != "semicolonsym")
+		if (strcmp(tok->name, "semicolonsym") != 0)
 		{
 			printf("semicolosym error in block/insym\n");
 			return NULL;
 		}
 		else
 		{
-			tok = tok->next;
+			tok = fetch(tok);
 		}
 	}
 
-	while(tok->name == "procsym")
+	while(strcmp(tok->name,"procsym") == 0)
 	{
-		tok = tok->next;
-		if (tok->name != "identsym")
+		tok = fetch(tok);
+		if (strcmp(tok->name, "identsym") != 0)
 		{
 			printf("identsym error in block/procsym\n");
 			return NULL;
 		}
 		else
 		{
-			tok = tok->next;
+			tok = fetch(tok);
 		}
 
-		if (tok->name != "semicolonsym")
+		if (strcmp(tok->name, "semicolonsym") != 0)
 		{
 			printf("semicolonsym error in block/procsym\n");
 			return NULL;
 		}
 		else
 		{
-			tok = tok->next;
+			tok = fetch(tok);
 		}
 
 		tok = block(tok);
-		if (tok->name != "semicolonsym")
+		if (strcmp(tok->name,"semicolonsym") != 0)
 		{
 			printf("semicolonsym error in block/procsym 2\n");
 			return NULL;
 		}
 		else
 		{
-			tok = tok->next;
+			tok = fetch(tok);
 		}
 	}
 
@@ -229,78 +228,78 @@ token * block(token * tok)
 token * statement(token * tok)
 {
 
-	printf("** STATEMENT **\n");
+	printf("\t***\tSTATEMENT\t***\n");
 
-
-	if (tok->name == "identsym")
+	if (strcmp(tok->name, "identsym") == 0)
 	{
-		tok = tok->next;
-		if (tok->name != "becomessym")
+		tok = fetch(tok);
+		if (strcmp(tok->name, "becomessym") != 0)
 		{
 			printf("becomessym error in statement/indentsym\n");
 			return NULL;
 		}
-		tok = tok->next;
+		tok = fetch(tok);
 		tok = expression(tok);
 	}
-	else if (tok->name == "callsym")
+	else if (strcmp(tok->name, "callsym") == 0)
 	{
-		tok = tok->next;
-		if (tok->name != "identsym")
+		tok = fetch(tok);
+		if (strcmp(tok->name, "identsym") != 0)
 		{
 			printf("identsym err in statement/callsym\n");
 			return NULL;
-			tok = tok->next;
+			tok = fetch(tok);
 		}
 	}
-	else if (tok->name == "beginsym")
+	else if (strcmp(tok->name, "beginsym") == 0)
 	{
-		tok = tok->next;
+		tok = fetch(tok);
 		tok = statement(tok);
-		while(tok->name == "semicolonsym")
+
+		while( strcmp(tok->name, "semicolonsym") == 0)
 		{
-			tok = tok->next;
+			tok = fetch(tok);
 			tok = statement(tok);
 		}
 
-		if (tok->name != "endsym")
+		if (strcmp(tok->name, "endsym") != 0)
 		{
-			printf("endsym err in statement/beginsym\n");
+			printf("endsym err in statement/beginsym: %s\n", tok->name);
 			return NULL;
 		}
 		else
 		{
-			tok = tok->next;
+			tok = fetch(tok);
 		}
 	}
-	else if (tok->name == "ifsym")
+	else if (strcmp(tok->name, "ifsym") == 0)
 	{
-		tok = tok->next;
+		tok = fetch(tok);
 		tok = condition(tok);
-		if (tok->name != "thensym")
+		if ( strcmp(tok->name, "thensym") != 0)
 		{
 			printf("thensym error in statament/ifsym\n");
 			return NULL;
 		}
 		else
 		{
-			tok = tok->next;
+			tok = fetch(tok);
 			tok = statement(tok);
 		}
 	}
-	else if (tok->name == "whilesym")
+	else if (strcmp(tok->name, "whilesym") == 0)
 	{
-		tok = tok->next;
+		tok = fetch(tok);
 		tok = condition(tok);
 
-		if (tok->name != "dosym")
+		if (strcmp(tok->name, "dosym") != 0)
 		{
 			printf("dosym error in statement/whilesym\n");
 			return NULL;
 		}
 		else
 		{
-			tok = tok->next;
+			tok = fetch(tok);
 			tok = statement(tok);
 		}
 	}
@@ -311,26 +310,26 @@ token * statement(token * tok)
 token * condition(token * tok)
 {
 
-	printf("** CONDITION **\n");
+	printf("\t***\tCONDITION\t***\n");
 
 	// this may be wrong, per his psuedocode
-	if (tok->name == "oddsym")
+	if (strcmp(tok->name, "oddsym") == 0)
 	{
-		tok = tok->next;
+		tok = fetch(tok);
 		tok = expression(tok);
 	}
 	else
 	{
 		tok = expression(tok);
 		// TODO: check if it's a relation symbol like == or whatever
-		if (tok->name != "relation")
+		if (strcmp(tok->name, "relation") != 0)
 		{
 			printf("relation error in condition/else \n");
 			return NULL;
 		}
 		else
 		{
-			tok = tok->next;
+			tok = fetch(tok);
 			tok = expression(tok);
 		}
 	}
@@ -341,15 +340,15 @@ token * condition(token * tok)
 token * expression(token * tok)
 {
 
-	printf("** EXPRESSION **\n");
+	printf("\t***\tEXPRESSION\t***\n");
 
-	if (tok->name == "plussym" || tok->name == "minussym")
+	if (strcmp(tok->name, "plussym") == 0 || strcmp(tok->name, "minussym") == 0)
 	{
 		tok = term(tok);
 
-		while(tok->name == "plussym" || tok->name == "minussym")
+		while(strcmp(tok->name, "plussym") == 0 || strcmp(tok->name, "minussym") == 0)
 		{
-			tok = tok->next;
+			tok = fetch(tok);
 			tok = term(tok);
 		}
 	}
@@ -360,43 +359,44 @@ token * expression(token * tok)
 token * term(token * tok)
 {
 
-	printf("** TERM **\n");
+	printf("\t***\tTERM\t***\n");
 
 	tok = factor(tok);
 
-	while(tok->name == "multsym" || tok->name == "slashym")
+	while(strcmp(tok->name, "multsym") == 0 || strcmp(tok->name, "slashym") == 0)
 	{
-		tok = tok->next;
+		tok = fetch(tok);
 		tok = factor(tok);
 	}
 }
 
+
 token * factor(token * tok)
 {
 
-	printf("** FACTOR **\n");
+	printf("\t***\tFACTOR\t***\n");
 
-	if (tok->name == "identsym")
+	if (strcmp(tok->name, "identsym") == 0)
 	{
-		tok = tok->next;
+		tok = fetch(tok);
 	}
 	// TODO identify as a number
-	else if (tok->name == "number")
+	else if (strcmp(tok->name, "numbersym") == 0)
 	{
-		tok = tok->next;
+		tok = fetch(tok);
 	}
-	else if (tok->name == "(")
+	else if (strcmp(tok->name, "lparentsym") == 0)
 	{
-		tok = tok->next;
+		tok = fetch(tok);
 		tok = expression(tok);
-		if (tok->name != ")")
+		if (strcmp(tok->name, "rparentsym") != 0)
 		{
 			printf("missing ) in factor/(\n");
 			return NULL;
 		}
 		else
 		{
-			tok = tok->next;
+			tok = fetch(tok);
 		}
 	}
 	else
@@ -407,6 +407,25 @@ token * factor(token * tok)
 	return tok;
 }
 
+token * fetch(token * tok)
+{
+	if (tok == NULL)
+	{
+		printf("Null token Error!\n");
+		return NULL;
+	}
+	else if (tok->next == NULL)
+	{
+		printf("Null next token error!\n");
+		return NULL;
+	}
+	else
+	{
+		tok = tok->next;
+		printf("* %s\n", tok->name);
+		return tok;
+	}
+}
 
 token * getTokenList(char * nameFile, char * typeFile)
 {
