@@ -51,6 +51,16 @@ char * fileToArr(char * filename);
 void parser(char * nameFile, char * typeFile);
 token * getTokenList(char * nameFile, char * typeFile);
 
+
+// parser functions
+token * block(token * tok);
+token * program(token * tok);
+token * statement(token * tok);
+token * expression(token * tok);
+token * condition(token * tok);
+token * factor(token * tok);
+token * term(token * tok);
+
 int main(int argc, char ** argv)
 {
 
@@ -81,26 +91,327 @@ int main(int argc, char ** argv)
 void parser(char * nameFile, char * typeFile)
 {
 	printf("*** PARSER ***\n");
-    // dynamically allocated based on how many tokens there are
-    int tokenLen = 256;
-    // get length
+   // dynamically allocated based on how many tokens there are
 
-	 token * list = getTokenList(nameFile, typeFile);
-	 //printList(list);
-    // Lex file IO
+	// get linked list with tokens
+	token * head = getTokenList(nameFile, typeFile);
+	printList(head);
 
+	// get the first token from the list
+	token * tok = head->next;
 
-
-
+	program(tok);
    // psuedocode implementation
-
-
     return;
 }
 
-token * getTokenList(char * nameFile, char * typeFile)
+token * program(token * tok)
+{
+	printf("** PROGRAM **\n");
+	if (tok == NULL)
+		return NULL;
+	else if (tok->name == "beginsym")
+	{
+		tok = block(tok);
+		if (tok->name != "periodsym")
+			printf("I missed my period... I think I might be pregant\n");
+		printf("%s", tok->name);
+	}
+
+
+
+
+}
+
+token * block(token * tok)
 {
 
+	printf("** BLOCK **\n");
+	printf("%s", tok->name);
+
+	if (tok->name == "constsym")
+	{
+		while(tok->name == "commasym")
+		{
+			if (tok->name != "identsym")
+			{
+				printf("identsym error in block/constsym");
+				return NULL;
+			}
+
+			tok = tok->next;
+
+			if (tok->name != "eqsym")
+			{
+				printf("eqsym error in block/constsym\n");
+				return NULL;
+			}
+
+			tok = tok->next;
+
+			if (tok->name != "numbersym")
+			{
+				// insert into symbol table??
+				printf("numbersym error in block/constsym\n");
+				return NULL;
+			}
+
+			tok = tok->next;
+		}
+	}
+
+	if (tok->name == "insym")
+	{
+		while(tok->name == "commasym")
+		{
+			tok = tok->next;
+			if (tok->name != "identsym")
+			{
+				printf("identsym error in block/insym\n");
+				return NULL;
+			}
+
+			tok = tok->next;
+		}
+
+		if (tok->name != "semicolonsym")
+		{
+			printf("semicolosym error in block/insym\n");
+			return NULL;
+		}
+		else
+		{
+			tok = tok->next;
+		}
+	}
+
+	while(tok->name == "procsym")
+	{
+		tok = tok->next;
+		if (tok->name != "identsym")
+		{
+			printf("identsym error in block/procsym\n");
+			return NULL;
+		}
+		else
+		{
+			tok = tok->next;
+		}
+
+		if (tok->name != "semicolonsym")
+		{
+			printf("semicolonsym error in block/procsym\n");
+			return NULL;
+		}
+		else
+		{
+			tok = tok->next;
+		}
+
+		tok = block(tok);
+		if (tok->name != "semicolonsym")
+		{
+			printf("semicolonsym error in block/procsym 2\n");
+			return NULL;
+		}
+		else
+		{
+			tok = tok->next;
+		}
+	}
+
+	tok = statement(tok);
+	return tok;
+
+
+}
+
+token * statement(token * tok)
+{
+
+	printf("** STATEMENT **\n");
+
+
+	if (tok->name == "identsym")
+	{
+		tok = tok->next;
+		if (tok->name != "becomessym")
+		{
+			printf("becomessym error in statement/indentsym\n");
+			return NULL;
+		}
+		tok = tok->next;
+		tok = expression(tok);
+	}
+	else if (tok->name == "callsym")
+	{
+		tok = tok->next;
+		if (tok->name != "identsym")
+		{
+			printf("identsym err in statement/callsym\n");
+			return NULL;
+			tok = tok->next;
+		}
+	}
+	else if (tok->name == "beginsym")
+	{
+		tok = tok->next;
+		tok = statement(tok);
+		while(tok->name == "semicolonsym")
+		{
+			tok = tok->next;
+			tok = statement(tok);
+		}
+
+		if (tok->name != "endsym")
+		{
+			printf("endsym err in statement/beginsym\n");
+			return NULL;
+		}
+		else
+		{
+			tok = tok->next;
+		}
+	}
+	else if (tok->name == "ifsym")
+	{
+		tok = tok->next;
+		tok = condition(tok);
+		if (tok->name != "thensym")
+		{
+			printf("thensym error in statament/ifsym\n");
+			return NULL;
+		}
+		else
+		{
+			tok = tok->next;
+			tok = statement(tok);
+		}
+	}
+	else if (tok->name == "whilesym")
+	{
+		tok = tok->next;
+		tok = condition(tok);
+
+		if (tok->name != "dosym")
+		{
+			printf("dosym error in statement/whilesym\n");
+			return NULL;
+		}
+		else
+		{
+			tok = tok->next;
+			tok = statement(tok);
+		}
+	}
+
+	return tok;
+}
+
+token * condition(token * tok)
+{
+
+	printf("** CONDITION **\n");
+
+	// this may be wrong, per his psuedocode
+	if (tok->name == "oddsym")
+	{
+		tok = tok->next;
+		tok = expression(tok);
+	}
+	else
+	{
+		tok = expression(tok);
+		// TODO: check if it's a relation symbol like == or whatever
+		if (tok->name != "relation")
+		{
+			printf("relation error in condition/else \n");
+			return NULL;
+		}
+		else
+		{
+			tok = tok->next;
+			tok = expression(tok);
+		}
+	}
+
+	return tok;
+}
+
+token * expression(token * tok)
+{
+
+	printf("** EXPRESSION **\n");
+
+	if (tok->name == "plussym" || tok->name == "minussym")
+	{
+		tok = term(tok);
+
+		while(tok->name == "plussym" || tok->name == "minussym")
+		{
+			tok = tok->next;
+			tok = term(tok);
+		}
+	}
+
+	return tok;
+}
+
+token * term(token * tok)
+{
+
+	printf("** TERM **\n");
+
+	tok = factor(tok);
+
+	while(tok->name == "multsym" || tok->name == "slashym")
+	{
+		tok = tok->next;
+		tok = factor(tok);
+	}
+}
+
+token * factor(token * tok)
+{
+
+	printf("** FACTOR **\n");
+
+	if (tok->name == "identsym")
+	{
+		tok = tok->next;
+	}
+	// TODO identify as a number
+	else if (tok->name == "number")
+	{
+		tok = tok->next;
+	}
+	else if (tok->name == "(")
+	{
+		tok = tok->next;
+		tok = expression(tok);
+		if (tok->name != ")")
+		{
+			printf("missing ) in factor/(\n");
+			return NULL;
+		}
+		else
+		{
+			tok = tok->next;
+		}
+	}
+	else
+	{
+		printf("error in factor\n");
+	}
+
+	return tok;
+}
+
+
+token * getTokenList(char * nameFile, char * typeFile)
+{
+		// THIS FUNCTION IS A BITCH
+		// AVOID TINKERING WITH IT
 
 		// create a new linked list to store tokens
 		token * head = malloc(sizeof(token));
@@ -130,7 +441,6 @@ token * getTokenList(char * nameFile, char * typeFile)
 
 			int tmpType = atoi(typeTok);
 
-			//printf("%s\t%d\n", tmpStr, tmpType);
 
 			// insert into tail of linked list
 			token * tmp = head;
@@ -146,53 +456,24 @@ token * getTokenList(char * nameFile, char * typeFile)
 			//printf("%s\t%d\n", tmp->next->name, tmp->next->type);
 		}
 
-		token * tmp = head;
+		printList(head);
 
-		// print list
-		while(tmp != NULL)
-		{
-			printf("%s\t%d\n", tmp->name, tmp->type);
-			tmp = tmp->next;
-		}
 
 
 	return head;
 }
 
 
-void insertTail(token * head, char * name, int type)
-{
-	token * tmp = head;
-
-	// traverse to the end of the linked list
-   while(tmp->next != NULL)
-   {
-       tmp = tmp->next;
-   }
-
-    // add a token at the end of the linked list
-   tmp->next = malloc(sizeof(token));
-
-	strcpy(tmp->next->name, name);
-	//strcpy(tmp->next->type, type);
-	//tmp->next->type = malloc(sizeof(int));
-	tmp->next->type = type;
-	tmp->next->next = NULL;
-
-//	printf("%-12s\t\%s\n", tmp->name, tmp->type);
-
-	 return;
-}
-
 void printList(token * head)
 {
-    token * tmp = head->next;
+	token * tmp = head->next;
 
-    while(tmp != NULL)
-    {
-        printf("%-12s\t\%s\n", tmp->name, tmp->type);
-        tmp = tmp->next;
-    }
+	// print list
+	while(tmp != NULL)
+	{
+		printf("%s\t%d\n", tmp->name, tmp->type);
+		tmp = tmp->next;
+	}
 
    printf("END OF LIST\n");
 }
