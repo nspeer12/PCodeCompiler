@@ -7,9 +7,9 @@
 
 typedef struct lexeme
 {
-		char name[11];
+		char name[15];
 		int type;
-
+		char inputValue[15];
 }lexeme;
 
 lexeme masterArray[10000];
@@ -25,7 +25,10 @@ void identify(char temp[], int ssym[], int *lexemesLength);
 void printLexemeList(int *lexemesLength);
 int isSpecialSymbol(char c);
 int echoFile(char * filename);
+char * getReservedWordName(char temp[]);
+char * getReservedSymName(char t);
 void writeLexemeList(int *lexemesLength);
+
 
 typedef enum
 {
@@ -73,7 +76,128 @@ int main(int argc, char *argv[])
 		cleanInput(numOfChars, charArray);
 		evaluateTokens(charArray);
 }
+char * getReservedSymName(char t)
+{
+	char *result = NULL;
+	result = malloc(sizeof(char)*12);
+/*
+	ssym['+'] = plussym; ssym['-'] = minussym; ssym['*'] = multsym;
+	ssym['/'] = slashsym; ssym['('] = lparentsym; ssym[')'] = rparentsym;
+	ssym['='] = eqlsym; ssym[','] = commasym; ssym['.'] = periodsym;
+	ssym['#'] = neqsym; ssym['<'] = lessym; ssym['>'] = gtrsym;
+	ssym['$'] = leqsym; ssym['%'] = geqsym; ssym[';'] = semicolonsym;
+*/
 
+	if(t=='+')
+		strcpy(result,"plussym");
+
+	if(t=='/')
+		strcpy(result,"slashsym");
+
+	if(t=='=')
+		strcpy(result,"eqlsym");
+
+	if(t=='#')
+		strcpy(result,"neqsym");
+
+	if(t=='$')
+		strcpy(result,"leqsym");
+
+	if(t=='-')
+		strcpy(result,"minussym");
+
+	if(t=='(')
+		strcpy(result,"lparentsym");
+
+	if(t==',')
+		strcpy(result,"commasym");
+
+	if(t=='<')
+		strcpy(result,"lessym");
+
+	if(t=='%')
+		strcpy(result,"geqsym");
+
+	if(t=='*')
+		strcpy(result,"multsym");
+
+	if(t==')')
+		strcpy(result,"rparentsym");
+
+	if(t=='.')
+	 	strcpy(result,"periodsym");
+
+	if(t=='>')
+		strcpy(result,"gtrsym");
+
+	if(t==';')
+		strcpy(result,"semicolonsym");
+
+	return result;
+}
+char * getReservedWordName(char temp[])
+{
+	/*
+	nulsym, beginsym, callsym, constsym, dosym, elsesym, endsym,
+	ifsym, oddsym, procsym, readsym, thensym, varsym, whilesym, writesym
+	*/
+	int i;
+	char *result = NULL;
+	result = malloc(sizeof(char)*12);
+
+	for(i = 0; i < 15; i++)
+	{
+			if(strcmp(temp, word[i]) == 0)
+			{
+					if(i==0)
+						strcpy(result,"nulsym");
+
+					if(i==1)
+						strcpy(result,"beginsym");
+
+					if(i==2)
+						strcpy(result,"callsym");
+
+					if(i==3)
+						strcpy(result,"constsym");
+
+					if(i==4)
+						strcpy(result,"dosym");
+
+					if(i==5)
+						strcpy(result,"elsesym");
+
+					if(i==6)
+						strcpy(result,"endsym");
+
+					if(i==7)
+						strcpy(result,"ifsym");
+
+					if(i==8)
+						strcpy(result,"oddsym");
+
+					if(i==9)
+						strcpy(result,"procsym");
+
+					if(i==10)
+						strcpy(result,"readsym");
+
+					if(i==11)
+						strcpy(result,"thensym");
+
+					if(i==12)
+						strcpy(result,"varsym");
+
+					if(i==13)
+						strcpy(result,"whilesym");
+
+					if(i==14)
+						strcpy(result,"writesym");
+
+			}
+	}
+	return result;
+}
 void evaluateTokens(char charArray[])
 {
 	printf("Lexeme Table: \n");
@@ -260,7 +384,8 @@ void identify(char temp[], int ssym[], int *lexemesLength)
 			printf("%d\n",isReservedWord(temp));
 
 			current.type = isReservedWord(temp);
-			strcpy(current.name,temp);
+			strcpy(current.name,getReservedWordName(temp));
+			strcpy(current.inputValue,temp);
 			masterArray[*lexemesLength] = current;
 
 		}
@@ -273,7 +398,8 @@ void identify(char temp[], int ssym[], int *lexemesLength)
 					printf("%d\n",becomessym);
 
 					current.type = becomessym;
-					strcpy(current.name,temp);
+					strcpy(current.name,"becomessym");
+					strcpy(current.inputValue,temp);
 					masterArray[*lexemesLength] = current;
 				}
 			}
@@ -281,7 +407,8 @@ void identify(char temp[], int ssym[], int *lexemesLength)
 			{
 				printf("%d\n",ssym[temp[0]]);
 				current.type = ssym[temp[0]];
-				strcpy(current.name,temp);
+				strcpy(current.inputValue,temp);
+				strcpy(current.name,getReservedSymName(temp[0]));
 				masterArray[*lexemesLength] = current;
 			}
 		}
@@ -296,7 +423,8 @@ void identify(char temp[], int ssym[], int *lexemesLength)
 			{
 				printf("%d\n",identsym);
 				current.type = identsym;
-				strcpy(current.name,temp);
+				strcpy(current.inputValue,temp);
+				strcpy(current.name,"identsym");
 				masterArray[*lexemesLength] = current;
 			}
 
@@ -324,7 +452,8 @@ void identify(char temp[], int ssym[], int *lexemesLength)
 			{
 				printf("%d\n", numbersym);
 				current.type = numbersym;
-				strcpy(current.name,temp);
+				strcpy(current.name,"numbersym");
+				strcpy(current.inputValue,temp);
 				masterArray[*lexemesLength] = current;
 			}
 
@@ -351,36 +480,6 @@ int isSpecialSymbol(char c)
 		return 0;
 }
 
-void printLexemeList(int *lexemesLength)
-{
-	printf("\nLexeme List: \n");
-
-	for(int i = 0; i< *lexemesLength; i++)
-	{
-		printf("%d ",masterArray[i].type);
-		if(masterArray[i].type == numbersym || masterArray[i].type == identsym)
-			printf("%s ",masterArray[i].name);
-	}
-	printf("\n");
-}
-
-void writeLexemeList(int *lexemesLength)
-{
-	FILE * typeFile = fopen("tmp/lex.type.output", "w");
-	FILE * nameFile = fopen("tmp/lex.name.output", "w");
-
-	for(int i = 0; i< *lexemesLength; i++)
-	{
-		fprintf(typeFile, "%d ",masterArray[i].type);
-		fprintf(nameFile, "%s ",masterArray[i].name);
-
-		/*
-		if(masterArray[i].type == numbersym || masterArray[i].type == identsym)
-			fprintf(fp, "%s ",masterArray[i].name);
-		*/
-	}
-	printf("\n");
-}
 
 int echoFile(char * filename)
 {
@@ -400,4 +499,58 @@ int echoFile(char * filename)
 	printf("\n");
 	fclose(fp);
 	return len;
+}
+
+void writeLexemeList(int *lexemesLength)
+{
+	char *errors = NULL;
+	errors = malloc(sizeof(char)*100000);
+
+	FILE * typeFile = fopen("tmp/lex.type.output", "w");
+	FILE * nameFile = fopen("tmp/lex.name.output", "w");
+
+	for(int i = 0; i< *lexemesLength; i++)
+	{
+		fprintf(typeFile, "%d ",masterArray[i].type);
+		if(masterArray[i].type == numbersym || masterArray[i].type == identsym)
+			fprintf(typeFile, "%s ",masterArray[i].inputValue);
+
+		fprintf(nameFile, "%s ",masterArray[i].name);
+		if(masterArray[i].type == numbersym || masterArray[i].type == identsym)
+			fprintf(nameFile, "%s ",masterArray[i].inputValue);
+
+	}
+	printf("\n");
+}
+
+void printLexemeList(int *lexemesLength)
+{
+	char *errors = NULL;
+	errors = malloc(sizeof(char)*100000);
+
+	printf("\nLexeme List: \n");
+
+	for(int i = 0; i < *lexemesLength; i++)
+	{
+		printf("%d ",masterArray[i].type);
+		if(masterArray[i].type == numbersym || masterArray[i].type == identsym)
+		{
+			printf("%s ",masterArray[i].inputValue);
+		}
+
+	}
+
+	printf("\n");
+	printf("\n");
+
+	for(int i = 0; i < *lexemesLength; i++)
+	{
+		printf("%s ",masterArray[i].name);
+		if(masterArray[i].type == numbersym || masterArray[i].type == identsym)
+		{
+			printf("%s ",masterArray[i].inputValue);
+		}
+
+	}
+	printf("\n");
 }
