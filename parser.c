@@ -98,27 +98,6 @@ void parser(char * nameFile, char * typeFile)
     return;
 }
 
-char * fileToArr(char * filename)
-{
-	char * arr = malloc(sizeof(char) * getFileLen(filename));
-	FILE * fp = fopen(filename, "r");
-	char tmp;
-
-	int i = 0;
-
-	while(!feof(fp))
-	{
-		tmp = fgetc(fp);
-		if (tmp == EOF)
-		break;
-		else
-		{
-			arr[i++] = tmp;
-		}
-	}
-
-	return arr;
-}
 
 token * getTokenList(char * lexFile)
 {
