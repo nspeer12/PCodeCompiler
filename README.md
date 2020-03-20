@@ -1,25 +1,23 @@
 # PCodeCompiler
 
-### HOW TO RUN: 
-* This VM is written in the C Language. 
-* It can be compiled with any normal C compiler. 
-* The file takes in an input file of "input.txt". 
+### How To Run
+run in default mode
+`bash compile.sh`
 
-* Example Compile Command in Terminal:  
-**'gcc vm.c  
-./a.out input.txt'**
+## Lost?
+`bash compile.sh --help`
 
-**Sample input in input.txt file**  
-7 0 0 10  
-7 0 0 2  
-6 0 0 6  
-1 0 0 8  
-4 0 0 4  
+## Usage
+**note** <filename> is inputs/input0.txt
 
+print the list of lexemes/tokens to the screen
+`bash compile.sh -l <filename>`
 
-**The program outputs information to the console only.**
+print the generated assembly code to the screen
+`bash compile.sh -a <filename>`
 
+print the virtual machine execution trace
+`bash compile.sh -v <filename>`
 
-
-
- 
+or use in combination
+`bash compile.sh -l -v -a <filename>`
