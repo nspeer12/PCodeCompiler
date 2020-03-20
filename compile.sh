@@ -14,6 +14,9 @@ VM=0
 HELP=0
 DEBUG=0
 
+# default file
+file="inputs/input01.txt"
+
 for arg in "$@"
 do
 	 case $arg in
@@ -46,9 +49,11 @@ do
 	 esac
 done
 
+
 if [[ $DEBUG = "1" ]]
 then
-	debug
+	echo $file
+	#debug
 fi
 
 # Need to change to True/False instead of 0 or 1
@@ -75,7 +80,6 @@ then
 	./lex.o $file -l
 else
 	./lex.o $file
-
 fi
 
 rm "lex.o"
