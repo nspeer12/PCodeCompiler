@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
+#include "lex.c"
 
 typedef struct symbol
 {
@@ -18,31 +19,10 @@ typedef struct token
 {
     int type;
     char * name;
+    char * inputValue;
     struct token * next;
+
 } token;
-
-typedef enum
-{
-    nulsym = 1, identsym = 2, numbersym = 3, plussym = 4, minussym = 5, multsym = 6, slashsym = 7, oddsym = 8,
-    eqlsym = 9, neqsym = 10, lessym = 11, leqsym = 12, gtrsym = 13, geqsym = 14, lparentsym = 15, rparentsym = 16,
-    commasym = 17, semicolonsym = 18, periodsym = 19, becomessym = 20, beginsym = 21, endsym = 22, ifsym = 23,
-    thensym = 24, whilesym = 25, dosym = 26, callsym = 27, constsym = 28, varsym = 29, procsym = 30, writesym = 31,
-    readsym = 32, elsesym = 33
-
-} token_type;
-
-char *word[] =
-{
-    "null", "begin", "call", "const", "do", "else", "end", "if",
-    "odd", "procedure", "read", "then", "var", "while", "write"
-};
-
-int wsym [] = {
-    nulsym, beginsym, callsym, constsym, dosym, elsesym, endsym,
-    ifsym, oddsym, procsym, readsym, thensym, varsym, whilesym, writesym
-};
-
-char symbols[] = {'+', '-', '*', '/', '(', ')', '=', ',', '.', '<', '>', ';', ':'};
 
 void parser(char * nameFile, char * typeFile);
 void insertTail(token * head, char * name, int type);
@@ -61,12 +41,45 @@ token * expression(token * tok);
 token * condition(token * tok);
 token * factor(token * tok);
 token * term(token * tok);
+token * linkListify(int *lexemesLength);
 
 int main(int argc, char ** argv)
 {
 
     int MAX_SYMBOL_TABLE_SIZE = 256; // Need to check this
     symbol symbol_table[MAX_SYMBOL_TABLE_SIZE];
+
+    // LEX MAIN BEGIN.
+
+    FILE *fp;
+    int i =0;
+    int numOfChars;
+    char * charArray;
+
+    int print = 0;
+
+    if (argc > 0)
+    {
+      if (argc == 3)
+      {
+        if (strcmp(argv[2], "-l") == 0)
+          print = 1;
+      }
+
+      numOfChars = echoFile(argv[1], print);
+      charArray = malloc(sizeof(char) * (numOfChars  + 2));
+      populateCharArray(charArray, numOfChars, argv[1]);
+    }
+    else
+    {
+      printf("Error! Please pass a valid filename through command line argument\n");
+    }
+
+    // clears up all comments, \n and tabs.
+    cleanInput(numOfChars, charArray);
+    evaluateTokens(charArray, print);
+
+    // LEX MAIN END.
 
     /* Parser
         - read the output of the Lex scanner (hw2)
@@ -95,7 +108,7 @@ void parser(char * nameFile, char * typeFile)
    // dynamically allocated based on how many tokens there are
 
 	// get linked list with tokens
-	token * head = getTokenList(nameFile, typeFile);
+	token * head = linkListify(&masterLength);
 	printList(head);
 	printf("\n");
 
@@ -128,7 +141,39 @@ token * program(token * tok)
 		printf("%s", tok->name);
 	}
 }
+token * linkListify(int *lexemesLength)
+{
+  token * head = malloc(sizeof(token));
 
+  head->name = malloc(sizeof(char)*16);
+  head->inputValue = malloc(sizeof(char)*16);
+  head->type = -1;
+
+  strcpy(head->name, "head");
+  strcpy(head->inputValue, "head");
+  head->type = 0;
+  head->next = NULL;
+
+  token *temp = head;
+
+  for(int i = 0; i<*lexemesLength; i++)
+  {
+    // copy over all the information into this linked list.
+    token *new = malloc(sizeof(token));
+
+    new->name = malloc(sizeof(char)*16);
+    new->inputValue = malloc(sizeof(char)*16);
+
+    new->type = masterArray[i].type;
+    strcpy(new->inputValue,masterArray[i].inputValue);
+    strcpy(new->name, masterArray[i].name);
+
+    temp->next = new;
+    temp = temp->next;
+  }
+
+  return head;
+}
 token * block(token * tok)
 {
 
