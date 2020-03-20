@@ -13,6 +13,15 @@ typedef struct token
 
 } token;
 
+typedef enum
+{
+	nulsym = 1, identsym = 2, numbersym = 3, plussym = 4, minussym = 5, multsym = 6, slashsym = 7, oddsym = 8,
+	eqlsym = 9, neqsym = 10, lessym = 11, leqsym = 12, gtrsym = 13, geqsym = 14, lparentsym = 15, rparentsym = 16,
+	commasym = 17, semicolonsym = 18, periodsym = 19, becomessym = 20, beginsym = 21, endsym = 22, ifsym = 23,
+	thensym = 24, whilesym = 25, dosym = 26, callsym = 27, constsym = 28, varsym = 29, procsym = 30, writesym = 31,
+	readsym = 32, elsesym = 33
+
+}token_type;
 
 void printList(token * head)
 {
@@ -74,16 +83,6 @@ token * getTokenList(char * lexFile)
 	return head;
 }
 
-typedef enum
-{
-	nulsym = 1, identsym = 2, numbersym = 3, plussym = 4, minussym = 5, multsym = 6, slashsym = 7, oddsym = 8,
-	eqlsym = 9, neqsym = 10, lessym = 11, leqsym = 12, gtrsym = 13, geqsym = 14, lparentsym = 15, rparentsym = 16,
-	commasym = 17, semicolonsym = 18, periodsym = 19, becomessym = 20, beginsym = 21, endsym = 22, ifsym = 23,
-	thensym = 24, whilesym = 25, dosym = 26, callsym = 27, constsym = 28, varsym = 29, procsym = 30, writesym = 31,
-	readsym = 32, elsesym = 33
-
-}token_type;
-
 token * fetch(token * tok)
 {
 	if (tok == NULL)
@@ -104,3 +103,48 @@ token * fetch(token * tok)
 		return tok;
 	}
 }
+
+// threw this in here just because
+int getFileLen(char * filename)
+{
+	int fileLen = 0;
+	FILE * fp = fopen(filename, "r");
+
+	while(!feof(fp))
+	{
+		fgetc(fp);
+		fileLen++;
+	}
+
+	fclose(fp);
+	return fileLen;
+}
+
+/*
+token * linkListify(int *lexemesLength)
+{
+  token * head = malloc(sizeof(token));
+  head->name = malloc(sizeof(char)*16);
+  head->value = malloc(sizeof(char)*16);
+  head->type = -1;
+  strcpy(head->name, "head");
+  strcpy(head->value, "head");
+  head->type = 0;
+  head->next = NULL;
+  token *temp = head;
+
+  for(int i = 0; i<*lexemesLength; i++)
+  {
+    // copy over all the information into this linked list.
+    token *new = malloc(sizeof(token));
+    new->name = malloc(sizeof(char)*16);
+    new->value = malloc(sizeof(char)*16);
+    new->type = masterArray[i].type;
+    strcpy(new->value,masterArray[i].value);
+    strcpy(new->name, masterArray[i].name);
+    temp->next = new;
+    temp = temp->next;
+  }
+  return head;
+}
+*/
