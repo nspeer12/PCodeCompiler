@@ -60,30 +60,47 @@ int main(int argc, char *argv[])
 		int i =0;
 		int numOfChars;
 		char * charArray;
-
 		int print = 0;
+		char * filename;
 
-		if (argc > 0)
+		if (argc > 1)
 		{
-			if (argc == 3)
+			if (argc >= 2)
 			{
-				if (strcmp(argv[2], "-l") == 0)
-					print = 1;
+					if (argc >= 3)
+					{
+						if (strcmp(argv[1], "-l") == 0)
+						{
+							print = 1;
+							strcpy(filename, argv[2]);
+							printf("%s", filename);
+						}
+						else
+						{
+							strcpy(filename, argv[1]);
+						}
+					}
+					else
+					{
+						strcpy(filename, argv[1]);
+					}
 			}
 
-			numOfChars = echoFile(argv[1], print);
+			numOfChars = echoFile(filename, print);
 			charArray = malloc(sizeof(char) * (numOfChars  + 2));
-			populateCharArray(charArray, numOfChars, argv[1]);
+			populateCharArray(charArray, numOfChars, filename);
 		}
 		else
 		{
 			printf("Error! Please pass a valid filename through command line argument\n");
+			return 0;
 		}
 
 		// clears up all comments, \n and tabs.
 		cleanInput(numOfChars, charArray);
 		evaluateTokens(charArray, print);
 }
+
 char * getReservedSymName(char t)
 {
 	char *result = NULL;
@@ -371,6 +388,7 @@ int isALetter(char c)
 
 		return 0;
 }
+
 int isReservedWord(char temp[])
 {
 		int i;
@@ -505,7 +523,6 @@ int isSpecialSymbol(char c)
 		return 0;
 }
 
-
 int echoFile(char * filename, int print)
 {
 	int len = 0;
@@ -535,21 +552,19 @@ void writeLexemeList(int *lexemesLength)
 	char *errors = NULL;
 	errors = malloc(sizeof(char)*100000);
 
-	FILE * typeFile = fopen("tmp/lex.type.output", "w");
-	FILE * nameFile = fopen("tmp/lex.name.output", "w");
+	//FILE * typeFile = fopen("tmp/lex.type.output", "w");
+	//FILE * nameFile = fopen("tmp/lex.name.output", "w");
+	//FILE * valueFile = fopen("tmp/lex.value.output", "w")
+
+	FILE * lexOutput = fopen("tmp/lex.output", "w");
 
 	for(int i = 0; i < *lexemesLength; i++)
 	{
-		fprintf(typeFile, "%d ",masterArray[i].type);
-		//if(masterArray[i].type == numbersym || masterArray[i].type == identsym)
-		//	fprintf(typeFile, "%d ",masterArray[i].inputValue);
-
-		fprintf(nameFile, "%s ",masterArray[i].name);
-		if(masterArray[i].type == numbersym || masterArray[i].type == identsym)
-			fprintf(nameFile, "%s ",masterArray[i].inputValue);
-
+		fprintf(lexOutput, "%s,",masterArray[i].name);
+		fprintf(lexOutput, "%d,",masterArray[i].type);
+		fprintf(lexOutput, "%s,",masterArray[i].inputValue);
+		fprintf(lexOutput, "\n",masterArray[i].inputValue);
 	}
-	printf("\n");
 }
 
 void printLexemeList(int *lexemesLength)
