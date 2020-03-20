@@ -53,13 +53,11 @@ done
 if [[ $DEBUG = "1" ]]
 then
 	echo $file
-	#debug
+	echo "Output Lex: $LEX"
+	echo "Output Assembly: $ASSEMBLY"
+	echo "Execute on VM: $VM"
 fi
 
-# Need to change to True/False instead of 0 or 1
-#echo "# Output Lex: $LEX"
-#echo "# Output Assembly: $ASSEMBLY"
-#echo "# Execute on VM: $VM"
 if [ $HELP = "1" ]
 then
 	echo "PL/0 Compiler"
