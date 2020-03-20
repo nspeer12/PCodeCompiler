@@ -67,34 +67,29 @@ int main(int argc, char *argv[])
 		{
 			if (argc >= 2)
 			{
-					if (argc >= 3)
+				if (argc >= 3)
+				{
+					if (strcmp(argv[1], "-l") == 0)
 					{
-						if (strcmp(argv[1], "-l") == 0)
-						{
-							print = 1;
-							strcpy(filename, argv[2]);
-							printf("%s", filename);
-						}
-						else
-						{
-							strcpy(filename, argv[1]);
-						}
+						print = 1;
+						strcpy(filename, argv[2]);
+						printf("%s", filename);
 					}
 					else
 					{
 						strcpy(filename, argv[1]);
 					}
+				}
+				else
+				{
+					strcpy(filename, argv[1]);
+				}
 			}
+		}
 
 			numOfChars = echoFile(filename, print);
 			charArray = malloc(sizeof(char) * (numOfChars  + 2));
 			populateCharArray(charArray, numOfChars, filename);
-		}
-		else
-		{
-			printf("Error! Please pass a valid filename through command line argument\n");
-			return 0;
-		}
 
 		// clears up all comments, \n and tabs.
 		cleanInput(numOfChars, charArray);
@@ -560,9 +555,9 @@ void writeLexemeList(int *lexemesLength)
 
 	for(int i = 0; i < *lexemesLength; i++)
 	{
-		fprintf(lexOutput, "%s,",masterArray[i].name);
-		fprintf(lexOutput, "%d,",masterArray[i].type);
-		fprintf(lexOutput, "%s,",masterArray[i].inputValue);
+		fprintf(lexOutput, "%s\t",masterArray[i].name);
+		fprintf(lexOutput, "%d\t",masterArray[i].type);
+		fprintf(lexOutput, "%s",masterArray[i].inputValue);
 		fprintf(lexOutput, "\n",masterArray[i].inputValue);
 	}
 }
