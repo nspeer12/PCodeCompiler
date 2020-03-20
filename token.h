@@ -19,7 +19,7 @@ typedef enum
 	eqlsym = 9, neqsym = 10, lessym = 11, leqsym = 12, gtrsym = 13, geqsym = 14, lparentsym = 15, rparentsym = 16,
 	commasym = 17, semicolonsym = 18, periodsym = 19, becomessym = 20, beginsym = 21, endsym = 22, ifsym = 23,
 	thensym = 24, whilesym = 25, dosym = 26, callsym = 27, constsym = 28, varsym = 29, procsym = 30, writesym = 31,
-	readsym = 32, elsesym = 33
+	readsym = 32, elsesym = 33F
 
 }token_type;
 
@@ -37,10 +37,8 @@ void printList(token * head)
    printf("END OF LIST\n");
 }
 
-token * getTokenList(char * lexFile)
+token * getTokenList(char * lexFile, int print)
 {
-		// THIS FUNCTION IS A BITCH
-		// AVOID TINKERING WITH IT
 
 		// create a new linked list to store tokens
 		token * head = malloc(sizeof(token));
@@ -78,7 +76,8 @@ token * getTokenList(char * lexFile)
 			sscanf(buff, "%s%d%s", tmp->name, &tmp->type, tmp->value);
 		}
 
-		printList(head);
+		if (print == 1)
+			printList(head);
 
 	return head;
 }
