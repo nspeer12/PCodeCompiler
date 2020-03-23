@@ -26,6 +26,7 @@ token * expression(token * tok);
 token * condition(token * tok);
 token * factor(token * tok);
 token * term(token * tok);
+int isRelationalOperator(char *p);
 
 
 int main(int argc, char ** argv)
@@ -127,8 +128,13 @@ token * block(token * tok)
 	}
 
 	// TODO: intsym is not defined or specified
-	int intsym = -69;
-	if (tok->type == intsym)
+	// int intsym = -69;
+
+  // - Danish. Prof uses intsym and varsym interchangably in the sample symbol outputs.
+  // Also in the sample pseudo code errors.
+  // Therefore if we check for varsym rather than intsym we'll be good.
+
+	if (tok->type == varsym)
 	{
 		do
 		{
@@ -278,7 +284,12 @@ token * condition(token * tok)
 		tok = expression(tok);
 		// TODO: check if it's a relation symbol like == or whatever
 		// I deleted relation from here. we need to include it
-		if (tok->type != -1)
+    // - Done.
+
+    // Expression is supposed to check if the tok->value isn't relational operator.
+    // Therefore isRelationalOperator returns 1 if it is, 0 if it isn't.
+    // Using !, it reverses resulting in the appropriate check.
+		if (!isRelationalOperator(tok->value))
 		{
 			printf("relation error in condition/else \n");
 			return NULL;
@@ -323,6 +334,9 @@ token * term(token * tok)
 		tok = fetch(tok);
 		tok = factor(tok);
 	}
+
+  // !! WARNING TEMPORARY RETURN !! RETURN SOMETHING PROPER!.
+  return NULL;
 }
 
 token * factor(token * tok)
@@ -373,5 +387,31 @@ symbol * insertSym(symbol * sym, int kind, char * name, int val, int level, int 
 		sym = tmp;
 
 		return sym;
+
+}
+int isRelationalOperator(char *p)
+{
+  // Check if this is a relational operator.
+  // If so return 1. If not return 0.
+
+  if(strcmp(p,"<>") == 0)
+    return 1;
+
+  if(strcmp(p,":=") == 0 || strcmp(p,"=") == 0)
+    return 1;
+
+  if(strcmp(p,"<") == 0)
+    return 1;
+
+  if(strcmp(p,"<=") == 0)
+    return 1;
+
+  if(strcmp(p,">") == 0)
+    return 1;
+
+  if(strcmpy(p,">=") == 0)
+    return 1;
+
+  return 0;
 
 }
