@@ -126,10 +126,6 @@ token * block(token * tok)
 			return NULL;
 		}
 	}
-
-	// TODO: intsym is not defined or specified
-	// int intsym = -69;
-
   // - Danish. Prof uses intsym and varsym interchangably in the sample symbol outputs.
   // Also in the sample pseudo code errors.
   // Therefore if we check for varsym rather than intsym we'll be good.
@@ -194,22 +190,31 @@ token * statement(token * tok)
 	if (tok->type == identsym)
 	{
 		tok = fetch(tok);
+
 		if (tok->type != becomessym)
 		{
 			printf("becomessym error in statement/indentsym: %s\n", tok->name);
 			return NULL;
 		}
+
 		tok = fetch(tok);
 		tok = expression(tok);
+		// ** ERROR LOCATION **
+		// added in this line, partially working for now
+		// basically, there is a fetch missing that is causing errors
+		// tok = fetch(tok);
+
 	}
 	else if (tok->type == callsym)
 	{
 		tok = fetch(tok);
+
 		if (tok->type != identsym)
 		{
 			printf("identsym err in statement/callsym\n");
 			return NULL;
 		}
+
 		tok = fetch(tok);
 	}
 	else if (tok->type == beginsym)
@@ -228,25 +233,22 @@ token * statement(token * tok)
 			printf("endsym err in statement/beginsym: %s\n", tok->name);
 			return NULL;
 		}
-		else
-		{
-			tok = fetch(tok);
-		}
+
+		tok = fetch(tok);
 	}
 	else if (tok->type == ifsym)
 	{
 		tok = fetch(tok);
 		tok = condition(tok);
+
 		if (tok->type != thensym)
 		{
 			printf("thensym error in statament/ifsym\n");
 			return NULL;
 		}
-		else
-		{
-			tok = fetch(tok);
-			tok = statement(tok);
-		}
+
+		tok = fetch(tok);
+		tok = statement(tok);
 	}
 	else if (tok->type == whilesym)
 	{
@@ -258,11 +260,9 @@ token * statement(token * tok)
 			printf("dosym error in statement/whilesym\n");
 			return NULL;
 		}
-		else
-		{
-			tok = fetch(tok);
-			tok = statement(tok);
-		}
+
+		tok = fetch(tok);
+		tok = statement(tok);
 	}
 
 	return tok;
@@ -311,13 +311,15 @@ token * expression(token * tok)
 
 	if (tok->type == plussym || tok->type == minussym)
 	{
-		tok = term(tok);
+		tok = fetch(tok);
+	}
 
-		while(tok->type == plussym || tok->type == minussym)
-		{
-			tok = fetch(tok);
-			tok = term(tok);
-		}
+	tok = term(tok);
+
+	while(tok->type == plussym || tok->type == minussym)
+	{
+		tok = fetch(tok);
+		tok = term(tok);
 	}
 
 	return tok;
@@ -335,8 +337,7 @@ token * term(token * tok)
 		tok = factor(tok);
 	}
 
-  // !! WARNING TEMPORARY RETURN !! RETURN SOMETHING PROPER!.
-  return NULL;
+  return tok;
 }
 
 token * factor(token * tok)
@@ -348,7 +349,6 @@ token * factor(token * tok)
 	{
 		tok = fetch(tok);
 	}
-	// TODO identify as a number
 	else if (tok->type == numbersym)
 	{
 		tok = fetch(tok);
@@ -389,6 +389,7 @@ symbol * insertSym(symbol * sym, int kind, char * name, int val, int level, int 
 		return sym;
 
 }
+
 int isRelationalOperator(char *p)
 {
   // Check if this is a relational operator.
@@ -409,7 +410,7 @@ int isRelationalOperator(char *p)
   if(strcmp(p,">") == 0)
     return 1;
 
-  if(strcmpy(p,">=") == 0)
+  if(strcmp(p,">=") == 0)
     return 1;
 
   return 0;
