@@ -37,14 +37,14 @@ int levelCount = 0;
 token * fetch(token * tok);
 
 // parser functions
-void parser(token * tok, symbol * head, instruction * code, int cx);
-token * block(token * tok, symbol * head, instruction * code, int cx);
-token * program(token * tok, symbol * head, instruction * code, int cx);
-token * statement(token * tok, symbol * head, instruction * code, int cx);
-token * expression(token * tok, symbol * head, instruction * code, int cx);
-token * condition(token * tok, symbol * head, instruction * code, int cx);
-token * factor(token * tok, symbol * head, instruction * code, int cx);
-token * term(token * tok,symbol * head, instruction * code, int cx);
+void parser(token * tok, symbol * head, instruction * code, int * cx);
+token * block(token * tok, symbol * head, instruction * code, int * cx);
+token * program(token * tok, symbol * head, instruction * code, int * cx);
+token * statement(token * tok, symbol * head, instruction * code, int * cx);
+token * expression(token * tok, symbol * head, instruction * code, int * cx);
+token * condition(token * tok, symbol * head, instruction * code, int * cx);
+token * factor(token * tok, symbol * head, instruction * code, int * cx);
+token * term(token * tok,symbol * head, instruction * code, int * cx);
 int isRelationalOperator(char *p);
 void throwError(int err);
 int findVar(symbol *head, char *name);
@@ -52,6 +52,10 @@ symbol * insertSym(symbol * sym, int kind, char * name, double val, int level, i
 symbol * createNewSymbolTable();
 int setNewLevel(int level,symbolTableLevels * levels);
 int getNewAddress(int level,symbolTableLevels * levels);
+
+// code generation
+void printCode(instruction * code, int * cx);
+void emit(instruction * code, int * cx, int op, int R, int L, int M);
 
 int main(int argc, char ** argv)
 {
@@ -70,24 +74,54 @@ int main(int argc, char ** argv)
 	// store code in array
 	instruction * code = malloc(sizeof(instruction) * MAX_CODE_SIZE);
 	// keep track of current instruction
-	int cx = 0;
+	int * cx = malloc(sizeof(int));
+	*cx = 0;
 
 	symbol * symbolTableHead = createNewSymbolTable();
   	token * head = getTokenList("tmp/lex.output", print);
 
 	parser(head, symbolTableHead, code, cx);
+	printCode(code, cx);
 
 	return 0;
 }
 
+// adds a line of code to our array
+void emit(instruction * code, int * cx, int op, int R, int L, int M)
+{
+	if (*cx > MAX_CODE_SIZE)
+	{
 
-void parser(token * tok, symbol * head, instruction * code, int cx)
+		throwError(25);
+	}
+	else
+	{
+		code[*cx].op = op;
+		code[*cx].R = R;
+		code[*cx].L = L;
+		code[*cx].M = M;
+		*cx = *cx + 1;
+	}
+}
+
+void printCode(instruction * code, int * cx)
+{
+	printf("\nCODE\n");
+	printf("OP\tR\tL\tM\n");
+
+	for (int i=0; i < *cx; i++)
+	{
+		printf("%d\t%d\t%d\t%d\n", code[i].op, code[i].R, code[i].L, code[i].M);
+	}
+}
+
+void parser(token * tok, symbol * head, instruction * code, int * cx)
 {
 	program(tok, head, code, cx);
    return;
 }
 
-token * program(token * tok, symbol * head, instruction * code, int cx)
+token * program(token * tok, symbol * head, instruction * code, int * cx)
 {
 	// get the first token after head
 	tok = fetch(tok);
@@ -112,7 +146,7 @@ token * program(token * tok, symbol * head, instruction * code, int cx)
   	return tok;
 }
 
-token * block(token * tok, symbol * head, instruction * code, int cx)
+token * block(token * tok, symbol * head, instruction * code, int * cx)
 {
   symbolTableLevels * levels = malloc(sizeof(symbolTableLevels));
 
@@ -255,7 +289,7 @@ token * block(token * tok, symbol * head, instruction * code, int cx)
 	return tok;
 }
 
-token * statement(token * tok, symbol * head, instruction * code, int cx)
+token * statement(token * tok, symbol * head, instruction * code, int * cx)
 {
 
 	//	printf("\t***\tSTATEMENT\t***\n");
@@ -333,32 +367,50 @@ token * statement(token * tok, symbol * head, instruction * code, int cx)
 
 		if (tok->type != thensym)
 		{
+
 			// printf("thensym error in statament/ifsym\n");
 			return NULL;
 		}
+		else
+		{
+			tok = fetch(tok);
+		}
 
-		tok = fetch(tok);
+		// jump for if condition
+		int cxtmp = *cx;
+		emit(code, cx, 0, 0, 0, 0);
 		tok = statement(tok, head, code, cx);
+		code[cxtmp].M = *cx;
 	}
 	else if (tok->type == whilesym)
 	{
+		int cx1 = *cx;
+
 		tok = fetch(tok);
 		tok = condition(tok, head, code, cx);
+
+		int cx2 = *cx;
+		emit(code, cx, -1, -1, -1, -1);
 
 		if (tok->type != dosym)
 		{
 			// printf("dosym error in statement/whilesym\n");
 			return NULL;
 		}
-
-		tok = fetch(tok);
+		else
+		{
+			tok = fetch(tok);
+		}
 		tok = statement(tok, head, code, cx);
+
+		emit(code, cx, 0, 0, 0, cx1);
+		code[cx2].M = *cx;
 	}
 
 	return tok;
 }
 
-token * condition(token * tok, symbol * head, instruction * code, int cx)
+token * condition(token * tok, symbol * head, instruction * code, int * cx)
 {
 
 //	printf("\t***\tCONDITION\t***\n");
@@ -394,43 +446,83 @@ token * condition(token * tok, symbol * head, instruction * code, int cx)
 	return tok;
 }
 
-token * expression(token * tok, symbol * head, instruction * code, int cx)
+token * expression(token * tok, symbol * head, instruction * code, int * cx)
 {
-
+	// using a temporary token
+	token * addop;
 	// printf("\t***\tEXPRESSION\t***\n");
 
 	if (tok->type == plussym || tok->type == minussym)
 	{
+		addop = tok;
 		tok = fetch(tok);
-	}
+		tok = term(tok, head, code, cx);
 
-	tok = term(tok, head, code, cx);
+		// negation
+		if (addop->type == minussym)
+		{
+			// emit (OP, 0, OPR_NEG)
+			emit(code, cx, 69, 69, 69, -699);
+		}
+	}
+	else
+	{
+		tok = term(tok, head, code, cx);
+	}
 
 	while(tok->type == plussym || tok->type == minussym)
 	{
+		addop = tok;
+
 		tok = fetch(tok);
 		tok = term(tok, head, code, cx);
+
+		if (addop->type == plussym)
+		{
+			// emit(OP, 0, OPR_ADD)
+			emit(code, cx, 69, 69, 69, 0xadd);
+		}
+		else if (addop->type == minussym)
+		{
+			// emit (OPR, 0, OPR_SUB)
+			emit(code, cx, 69, 69, 69, -69);
+		}
 	}
 
 	return tok;
 }
 
-token * term(token * tok,symbol * head, instruction * code, int cx)
+
+token * term(token * tok,symbol * head, instruction * code, int * cx)
 {
 	// printf("\t***\tTERM\t***\n");
+	token * mulop;
 
 	tok = factor(tok, head, code, cx);
 
 	while(tok->type == multsym || tok->type == slashsym)
 	{
+		mulop = tok;
+
 		tok = fetch(tok);
 		tok = factor(tok, head, code, cx);
+
+		// multiplication
+		if (mulop->type == multsym)
+		{
+			emit(code, cx, 0, 12, 21, 8);
+		}
+		// division
+		else
+		{
+			emit(code, cx, 3, 3, 3, 3);
+		}
 	}
 
   return tok;
 }
 
-token * factor(token * tok, symbol * head, instruction * code, int cx)
+token * factor(token * tok, symbol * head, instruction * code, int * cx)
 {
 
 	// printf("\t***\tFACTOR\t***\n");
