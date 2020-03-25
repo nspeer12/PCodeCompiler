@@ -96,9 +96,9 @@ token * fetch(token * tok)
 	}
 	else
 	{
-		printf("- %s ", tok->name);
+		//printf("- %s ", tok->name);
 		tok = tok->next;
-		printf("-> %s\n", tok->name);
+		//printf("-> %s\n", tok->name);
 		return tok;
 	}
 }
@@ -118,32 +118,3 @@ int getFileLen(char * filename)
 	fclose(fp);
 	return fileLen;
 }
-
-/*
-token * linkListify(int *lexemesLength)
-{
-  token * head = malloc(sizeof(token));
-  head->name = malloc(sizeof(char)*16);
-  head->value = malloc(sizeof(char)*16);
-  head->type = -1;
-  strcpy(head->name, "head");
-  strcpy(head->value, "head");
-  head->type = 0;
-  head->next = NULL;
-  token *temp = head;
-
-  for(int i = 0; i<*lexemesLength; i++)
-  {
-    // copy over all the information into this linked list.
-    token *new = malloc(sizeof(token));
-    new->name = malloc(sizeof(char)*16);
-    new->value = malloc(sizeof(char)*16);
-    new->type = masterArray[i].type;
-    strcpy(new->value,masterArray[i].value);
-    strcpy(new->name, masterArray[i].name);
-    temp->next = new;
-    temp = temp->next;
-  }
-  return head;
-}
-*/
