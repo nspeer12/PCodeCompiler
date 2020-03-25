@@ -72,19 +72,19 @@ int main(int argc, char *argv[])
 				{
 					print = 1;
 
-					// strcpy(filename, argv[2]);
+					strcpy(filename, argv[2]);
 
 					// printf("filename: %s", filename);
 				}
 				else
 				{
-					// strcpy(filename, argv[1]);
+					strcpy(filename, argv[1]);
 				}
 			}
 			else
 			{
 
-				// strcpy(filename, argv[1]);
+				strcpy(filename, argv[1]);
 
 			}
 		}
