@@ -61,12 +61,11 @@ void emit(instruction * code, int * cx, int op, int R, int L, int M);
 
 int main(int argc, char ** argv)
 {
-
 	// Argument Handling
 	char * filename = "tmp/lex.output";
 	int print = 0;
 
-	if (argc > 2)
+	if (argc > 1)
 	{
 		if (strcmp(argv[1], "-a") == 0)
 		{
@@ -107,6 +106,8 @@ void emit(instruction * code, int * cx, int op, int R, int L, int M)
 		code[*cx].M = M;
 		*cx = *cx + 1;
 	}
+
+	printf("added line of code\n");
 }
 
 void parser(token * tok, symbol * head, instruction * code, int * cx)
@@ -771,8 +772,12 @@ void printSymbolTable(symbol * head)
 void printCode(instruction * code, int * cx, int print)
 {
 	FILE * fp = fopen("tmp/instructions.a", "w");
-	printf("\nCODE\n");
-	printf("OP\tR\tL\tM\n");
+
+	if (print == 1)
+	{
+		printf("\nCODE\n");
+		printf("OP\tR\tL\tM\n");
+	}
 
 	for (int i=0; i < *cx; i++)
 	{
