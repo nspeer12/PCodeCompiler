@@ -61,35 +61,37 @@ int main(int argc, char *argv[])
 		int numOfChars;
 		char * charArray;
 		int print = 0;
-		char * filename;
+		char * filename = malloc(sizeof(char) * 64);
 
-		if (argc > 1)
+		if (argc >= 2)
 		{
-			if (argc >= 2)
+
+			if (argc > 3)
 			{
-				if (argc >= 3)
+				if (strcmp(argv[1], "-l") == 0)
 				{
-					if (strcmp(argv[1], "-l") == 0)
-					{
-						print = 1;
-						strcpy(filename, argv[2]);
-						printf("%s", filename);
-					}
-					else
-					{
-						strcpy(filename, argv[1]);
-					}
+					print = 1;
+
+					// strcpy(filename, argv[2]);
+
+					// printf("filename: %s", filename);
 				}
 				else
 				{
-					strcpy(filename, argv[1]);
+					// strcpy(filename, argv[1]);
 				}
+			}
+			else
+			{
+
+				// strcpy(filename, argv[1]);
+
 			}
 		}
 
-			numOfChars = echoFile(filename, print);
-			charArray = malloc(sizeof(char) * (numOfChars  + 2));
-			populateCharArray(charArray, numOfChars, filename);
+		numOfChars = echoFile(filename, print);
+		charArray = malloc(sizeof(char) * (numOfChars  + 2));
+		populateCharArray(charArray, numOfChars, filename);
 
 		// clears up all comments, \n and tabs.
 		cleanInput(numOfChars, charArray);
@@ -557,8 +559,8 @@ void writeLexemeList(int *lexemesLength)
 	{
 		fprintf(lexOutput, "%s\t",masterArray[i].name);
 		fprintf(lexOutput, "%d\t",masterArray[i].type);
-		fprintf(lexOutput, "%s",masterArray[i].inputValue);
-		fprintf(lexOutput, "\n",masterArray[i].inputValue);
+		fprintf(lexOutput, "%s", masterArray[i].inputValue);
+		fprintf(lexOutput, "\n");
 	}
 }
 
