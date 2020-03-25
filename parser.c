@@ -10,26 +10,38 @@ typedef struct symbol
 {
     int kind;       // const = 1, var = 2, proc = 3
     char name[12];  // name (up to 11 chars)
-    int val;        // initial value
+    double val;        // initial value
     int level;      // Lexicographical level
     int addr;       // Mem address
 	 struct symbol * next; // for linked list
 } symbol;
 
+typedef struct symbolTableLevels
+{
+  int addressCount;
+  struct symbolTableLevels * next;
+
+} symbolTableLevels;
+
+int levelCount = 0;
 token * fetch(token * tok);
 
 // parser functions
-void parser(token * tok);
-token * block(token * tok);
-token * program(token * tok);
-token * statement(token * tok);
-token * expression(token * tok);
-token * condition(token * tok);
-token * factor(token * tok);
-token * term(token * tok);
+void parser(token * tok, symbol * head);
+token * block(token * tok, symbol * head);
+token * program(token * tok, symbol * head);
+token * statement(token * tok, symbol * head);
+token * expression(token * tok, symbol * head);
+token * condition(token * tok, symbol * head);
+token * factor(token * tok, symbol * head);
+token * term(token * tok,symbol * head);
 int isRelationalOperator(char *p);
 void throwError(int err);
-
+int findVar(symbol *head, char *name);
+symbol * insertSym(symbol * sym, int kind, char * name, double val, int level, int addr);
+symbol * createNewSymbolTable();
+int setNewLevel(int level,symbolTableLevels * levels);
+int getNewAddress(int level,symbolTableLevels * levels);
 
 int main(int argc, char ** argv)
 {
@@ -44,20 +56,21 @@ int main(int argc, char ** argv)
 			print = 1;
 		}
 	}
+  symbol * symbolTableHead = createNewSymbolTable();
 
-	token * head = getTokenList("tmp/lex.output", print);
-	parser(head);
+  token * head = getTokenList("tmp/lex.output", print);
+	parser(head,symbolTableHead);
    return 0;
 }
 
 
-void parser(token * tok)
+void parser(token * tok, symbol * head)
 {
-	program(tok);
+	program(tok,head);
    return;
 }
 
-token * program(token * tok)
+token * program(token * tok,symbol * head)
 {
 	// get the first token after head
 	tok = fetch(tok);
@@ -69,7 +82,7 @@ token * program(token * tok)
 	}
 	else
 	{
-		tok = block(tok);
+		tok = block(tok,head);
 
 		if (tok->type != periodsym)
 		{
@@ -82,10 +95,18 @@ token * program(token * tok)
   	return tok;
 }
 
-token * block(token * tok)
+token * block(token * tok, symbol * head)
 {
+  symbolTableLevels * levels = malloc(sizeof(symbolTableLevels));
+
+  levels->addressCount = 3;
+  levels->next = NULL;
+
 	if (tok->type == constsym)
 	{
+    char * name = malloc(sizeof(char)*15);
+    double value = 0;
+
 		do
 		{
 			tok = fetch(tok);
@@ -96,6 +117,11 @@ token * block(token * tok)
 				// printf("identsym error in block/constsym");
 				return NULL;
 			}
+      else
+      {
+        // set the name variable.
+        strcpy(name,tok->value);
+      }
 
 			tok = fetch(tok);
 
@@ -113,8 +139,19 @@ token * block(token * tok)
 				//printf("numbersym error in block/constsym\n");
 				return NULL;
 			}
+      else
+      {
+        // set the value variable.
+        value = atof(tok->value);
+      }
 
 			tok = fetch(tok);
+
+      // everything is good to go add this constant into the table.
+      // symbol * insertSym(symbol * sym, int kind, char * name, double val, int level, int addr);
+      // -1 for null addresses.
+
+      insertSym(head, 1, name, value, -1, -1);
 
 		} while(tok->type == commasym);
 
@@ -123,6 +160,7 @@ token * block(token * tok)
 			//printf("semicolosym error in block/constsym\n");
 			return NULL;
 		}
+
 	}
   // - Danish. Prof uses intsym and varsym interchangably in the sample symbol outputs.
   // Also in the sample pseudo code errors.
@@ -130,6 +168,9 @@ token * block(token * tok)
 
 	if (tok->type == varsym)
 	{
+    char * name = malloc(sizeof(char)*15);
+    double value = 0;
+
 		do
 		{
 			tok = fetch(tok);
@@ -138,6 +179,13 @@ token * block(token * tok)
 				//printf("identsym error in block/insym\n");
 				return NULL;
 			}
+      strcpy(name,tok->value);
+
+      // everything good to go.
+      // variable has been declared.
+      // insert into symbol table.
+      // symbol * insertSym(symbol * sym, int kind, char * name, double val, int level, int addr);
+      insertSym(head, 2, name, value, setNewLevel(levelCount,levels), getNewAddress(levelCount,levels));
 
 			tok = fetch(tok);
 
@@ -154,39 +202,57 @@ token * block(token * tok)
 
 	while(tok->type == procsym)
 	{
+    char * name = malloc(sizeof(char)*15);
+    double value = 0;
+
 		tok = fetch(tok);
 		if (tok->type != identsym)
 		{
 			//printf("identsym error in block/procsym\n");
 			return NULL;
 		}
-		else
-		{
-			tok = fetch(tok);
-		}
+
+    strcpy(name,tok->value);
+
+    // insert into symbol table.
+    insertSym(head, 3, name, value, setNewLevel(levelCount,levels), -1);
+
+    // increase level count after adding the procedure.
+    levelCount++;
+
+    tok = fetch(tok);
 
 		if (tok->type != semicolonsym)
 		{
 			//printf("semicolonsym error in block/procsym\n");
 			return NULL;
 		}
-		else
-		{
-			tok = fetch(tok);
-		}
+
+    tok = fetch(tok);
+
 	}
 
-	tok = statement(tok);
+	tok = statement(tok,head);
+
 	return tok;
 }
 
-token * statement(token * tok)
+token * statement(token * tok, symbol * head)
 {
 
 	//	printf("\t***\tSTATEMENT\t***\n");
 
 	if (tok->type == identsym)
 	{
+    // check if this variable exists in symbol table.
+    // if it doesn't throw error.
+
+    if(!findVar(head,tok->value))
+    {
+      // printf("Variable identifier being used doesn't exist in the symbol table. ");
+      return NULL;
+    }
+
 		tok = fetch(tok);
 
 		if (tok->type != becomessym)
@@ -196,7 +262,8 @@ token * statement(token * tok)
 		}
 
 		tok = fetch(tok);
-		tok = expression(tok);
+		tok = expression(tok,head);
+
 		// ** ERROR LOCATION **
 		// added in this line, partially working for now
 		// basically, there is a fetch missing that is causing errors
@@ -218,13 +285,14 @@ token * statement(token * tok)
 	else if (tok->type == beginsym)
 	{
 		tok = fetch(tok);
-		tok = statement(tok);
+		tok = statement(tok,head);
 
 		while(tok->type == semicolonsym)
 		{
 			tok = fetch(tok);
-			tok = statement(tok);
+			tok = statement(tok,head);
 		}
+
 
 		if (tok->type != endsym)
 		{
@@ -232,12 +300,18 @@ token * statement(token * tok)
 			return NULL;
 		}
 
-		tok = fetch(tok);
+    // decrement the level integer value.
+    if(levelCount > 0)
+    {
+      levelCount--;
+    }
+
+    tok = fetch(tok);
 	}
 	else if (tok->type == ifsym)
 	{
 		tok = fetch(tok);
-		tok = condition(tok);
+		tok = condition(tok,head);
 
 		if (tok->type != thensym)
 		{
@@ -246,12 +320,12 @@ token * statement(token * tok)
 		}
 
 		tok = fetch(tok);
-		tok = statement(tok);
+		tok = statement(tok,head);
 	}
 	else if (tok->type == whilesym)
 	{
 		tok = fetch(tok);
-		tok = condition(tok);
+		tok = condition(tok,head);
 
 		if (tok->type != dosym)
 		{
@@ -260,13 +334,13 @@ token * statement(token * tok)
 		}
 
 		tok = fetch(tok);
-		tok = statement(tok);
+		tok = statement(tok,head);
 	}
 
 	return tok;
 }
 
-token * condition(token * tok)
+token * condition(token * tok, symbol * head)
 {
 
 //	printf("\t***\tCONDITION\t***\n");
@@ -275,11 +349,11 @@ token * condition(token * tok)
 	if (tok->type == oddsym)
 	{
 		tok = fetch(tok);
-		tok = expression(tok);
+		tok = expression(tok,head);
 	}
 	else
 	{
-		tok = expression(tok);
+		tok = expression(tok,head);
 		// TODO: check if it's a relation symbol like == or whatever
 		// I deleted relation from here. we need to include it
     // - Done.
@@ -295,14 +369,14 @@ token * condition(token * tok)
 		else
 		{
 			tok = fetch(tok);
-			tok = expression(tok);
+			tok = expression(tok,head);
 		}
 	}
 
 	return tok;
 }
 
-token * expression(token * tok)
+token * expression(token * tok, symbol * head)
 {
 
 	// printf("\t***\tEXPRESSION\t***\n");
@@ -312,33 +386,33 @@ token * expression(token * tok)
 		tok = fetch(tok);
 	}
 
-	tok = term(tok);
+	tok = term(tok,head);
 
 	while(tok->type == plussym || tok->type == minussym)
 	{
 		tok = fetch(tok);
-		tok = term(tok);
+		tok = term(tok,head);
 	}
 
 	return tok;
 }
 
-token * term(token * tok)
+token * term(token * tok,symbol * head)
 {
 	// printf("\t***\tTERM\t***\n");
 
-	tok = factor(tok);
+	tok = factor(tok,head);
 
 	while(tok->type == multsym || tok->type == slashsym)
 	{
 		tok = fetch(tok);
-		tok = factor(tok);
+		tok = factor(tok,head);
 	}
 
   return tok;
 }
 
-token * factor(token * tok)
+token * factor(token * tok, symbol * head)
 {
 
 	// printf("\t***\tFACTOR\t***\n");
@@ -354,7 +428,7 @@ token * factor(token * tok)
 	else if (tok->type == lparentsym)
 	{
 		tok = fetch(tok);
-		tok = expression(tok);
+		tok = expression(tok,head);
 		if (tok->type != rparentsym)
 		{
 			// printf("missing ) in factor/(\n");
@@ -373,16 +447,49 @@ token * factor(token * tok)
 	return tok;
 }
 
-symbol * insertSym(symbol * sym, int kind, char * name, int val, int level, int addr)
+symbol * createNewSymbolTable()
 {
+  /*
+  typedef struct symbol
+  {
+      int kind;       // const = 1, var = 2, proc = 3
+      char name[12];  // name (up to 11 chars)
+      double val;        // initial value
+      int level;      // Lexicographical level
+      int addr;       // Mem address
+  	 struct symbol * next; // for linked list
+  } symbol;
+  */
+
+  symbol * head = malloc(sizeof(symbol));
+  head->kind = -1;
+  strcpy(head->name,"head");
+  head->val = -1;
+  head->level = -1;
+  head->addr = -1;
+  head->next = NULL;
+
+  return head;
+
+}
+
+symbol * insertSym(symbol * sym, int kind, char * name, double val, int level, int addr)
+{
+    symbol * iterator = sym;
+
+    while(iterator->next != NULL)
+    {
+      iterator = iterator->next;
+    }
+
 		symbol * tmp = malloc(sizeof(symbol));
 		tmp->kind = kind;
 		strcpy(tmp->name, name);
 		tmp->val = val;
 		tmp->level = level;
 		tmp->addr = -69;
-		tmp->next = sym;
-		sym = tmp;
+		tmp->next = NULL;
+    iterator->next = tmp;
 
 		return sym;
 
@@ -501,4 +608,58 @@ void throwError(int err)
 	}
 
 	return;
+}
+int findVar(symbol *head, char *name)
+{
+  symbol *temp = malloc(sizeof(symbol));
+  temp = head;
+
+  while((strcmp(temp->name,name) != 0) && temp != NULL)
+  {
+    temp = temp->next;
+  }
+
+  if(temp == NULL)
+  {
+    // error the variable we are referring to in the arithmetic doesn't even exist.
+    return 0;
+  }
+
+  return 1;
+}
+
+int setNewLevel(int level,symbolTableLevels * levels)
+{
+  // iterate to last level.
+  symbolTableLevels * t = levels;
+  int i;
+
+  for(i = 0; i < level; i++)
+  {
+    if(t->next == NULL)
+    {
+      // if no further levels exits, create a level and add it.
+      symbolTableLevels * new = malloc(sizeof(symbolTableLevels));
+
+      new->addressCount = 3;
+      new->next = NULL;
+      t->next = new;
+    }
+
+    t = t->next;
+  }
+  return level;
+}
+int getNewAddress(int level,symbolTableLevels * levels)
+{
+  // iterate to last level.
+  symbolTableLevels * t = levels;
+  int i;
+
+  for(i = 0; i < level; i++)
+    t = t->next;
+
+  t->addressCount++;
+
+  return t->addressCount;
 }
