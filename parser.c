@@ -281,18 +281,6 @@ token * statement(token * tok, symbol * head, instruction * code, int * cx)
 		// tok = fetch(tok);
 
 	}
-	else if (tok->type == callsym)
-	{
-		tok = fetch(tok);
-
-		if (tok->type != identsym)
-		{
-			// printf("identsym err in statement/callsym\n");
-			return NULL;
-		}
-
-		tok = fetch(tok);
-	}
 	else if (tok->type == beginsym)
 	{
 		tok = fetch(tok);
