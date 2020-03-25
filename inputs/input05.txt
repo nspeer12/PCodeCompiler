@@ -1,0 +1,10 @@
+/* input for lex.c */
+var x, y, z, k, i;
+begin
+  x := 3;
+  y := x + 69;
+  z := y - 69;
+  k := z * 69;
+  i := z / 69;
+
+end.
