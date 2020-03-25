@@ -56,16 +56,17 @@ int setNewLevel(int level,symbolTableLevels * levels);
 int getNewAddress(int level,symbolTableLevels * levels);
 void printSymbolTable(symbol * head);
 // code generation
-void printCode(instruction * code, int * cx);
+void printCode(instruction * code, int * cx, int print);
 void emit(instruction * code, int * cx, int op, int R, int L, int M);
 
 int main(int argc, char ** argv)
 {
+
 	// Argument Handling
-	char * filename;
+	char * filename = "tmp/lex.output";
 	int print = 0;
 
-	if (argc > 1)
+	if (argc > 2)
 	{
 		if (strcmp(argv[1], "-a") == 0)
 		{
@@ -80,10 +81,10 @@ int main(int argc, char ** argv)
 	*cx = 0;
 
 	symbol * symbolTableHead = createNewSymbolTable();
-  	token * head = getTokenList("tmp/lex.output", print);
+  	token * head = getTokenList(filename, print);
 
 	parser(head, symbolTableHead, code, cx);
-	printCode(code, cx);
+	printCode(code, cx, print);
 	printSymbolTable(symbolTableHead);
 	return 0;
 }
@@ -105,17 +106,6 @@ void emit(instruction * code, int * cx, int op, int R, int L, int M)
 		code[*cx].L = L;
 		code[*cx].M = M;
 		*cx = *cx + 1;
-	}
-}
-
-void printCode(instruction * code, int * cx)
-{
-	printf("\nCODE\n");
-	printf("OP\tR\tL\tM\n");
-
-	for (int i=0; i < *cx; i++)
-	{
-		printf("%d\t%d\t%d\t%d\n", code[i].op, code[i].R, code[i].L, code[i].M);
 	}
 }
 
@@ -159,8 +149,8 @@ token * block(token * tok, symbol * head, instruction * code, int * cx)
 
 	if (tok->type == constsym)
 	{
-    char * name = malloc(sizeof(char)*15);
-    double value = 0;
+    	char * name = malloc(sizeof(char)*15);
+    	double value = 0;
 
 		do
 		{
@@ -168,45 +158,42 @@ token * block(token * tok, symbol * head, instruction * code, int * cx)
 
 			if (tok->type != identsym)
 			{
-
-				// printf("identsym error in block/constsym");
+				printf("identsym error in block/constsym");
 				return NULL;
 			}
-      else
-      {
-        // set the name variable.
-        strcpy(name,tok->value);
-      }
-
-			tok = fetch(tok);
+      	else
+      	{
+        		// set the name variable.
+        		strcpy(name,tok->value);
+				tok = fetch(tok);
+      	}
 
 			if (tok->type != eqlsym)
 			{
-				//printf("eqsym error in block/constsym\n");
+				printf("eqsym error in block/constsym\n");
 				return NULL;
 			}
-
-			tok = fetch(tok);
+			else
+			{
+				tok = fetch(tok);
+			}
 
 			if (tok->type != numbersym)
 			{
-				// insert into symbol table??
-				//printf("numbersym error in block/constsym\n");
+				printf("numbersym error in block/constsym\n");
 				return NULL;
 			}
-      else
-      {
-        // set the value variable.
-        value = atof(tok->value);
-      }
+      	else
+      	{
+        		value = atof(tok->value);
+				tok = fetch(tok);
+	      }
 
-			tok = fetch(tok);
+			// everything is good to go add this constant into the table.
+      	// symbol * insertSym(symbol * sym, int kind, char * name, double val, int level, int addr);
+      	// -1 for null addresses.
 
-      // everything is good to go add this constant into the table.
-      // symbol * insertSym(symbol * sym, int kind, char * name, double val, int level, int addr);
-      // -1 for null addresses.
-
-      insertSym(head, 1, name, value, -1, -1);
+      	insertSym(head, 1, name, value, -1, -1);
 
 		} while(tok->type == commasym);
 
@@ -254,38 +241,6 @@ token * block(token * tok, symbol * head, instruction * code, int * cx)
 		}
 
 		tok = fetch(tok);
-	}
-
-	while(tok->type == procsym)
-	{
-    char * name = malloc(sizeof(char)*15);
-    double value = 0;
-
-		tok = fetch(tok);
-		if (tok->type != identsym)
-		{
-			//printf("identsym error in block/procsym\n");
-			return NULL;
-		}
-
-    strcpy(name,tok->value);
-
-    // insert into symbol table.
-    insertSym(head, 3, name, value, setNewLevel(levelCount,levels), -1);
-
-    // increase level count after adding the procedure.
-    levelCount++;
-
-    tok = fetch(tok);
-
-		if (tok->type != semicolonsym)
-		{
-			//printf("semicolonsym error in block/procsym\n");
-			return NULL;
-		}
-
-    tok = fetch(tok);
-
 	}
 
 	tok = statement(tok, head, code, cx);
@@ -601,9 +556,20 @@ symbol * insertSym(symbol * sym, int kind, char * name, double val, int level, i
 {
     symbol * iterator = sym;
 
+	 // need to account for addresses
+	 // NOTE: start at address 4, because 0 - 3 are reserved by the VM
+	 int i = 4;
     while(iterator->next != NULL)
     {
       iterator = iterator->next;
+		i++;
+
+		if (i > 7)
+		{
+			printf("Error, not enough registers");
+			return NULL;
+		}
+
     }
 
 		symbol * tmp = malloc(sizeof(symbol));
@@ -611,9 +577,20 @@ symbol * insertSym(symbol * sym, int kind, char * name, double val, int level, i
 		strcpy(tmp->name, name);
 		tmp->val = val;
 		tmp->level = level;
-		tmp->addr = -69;
+
+		// allow for custom insertions into symbol table
+		if (addr < 0)
+		{
+			// use counter variable
+			tmp->addr = i;
+		}
+		else
+		{
+			tmp->addr = addr;
+		}
+
 		tmp->next = NULL;
-    iterator->next = tmp;
+    	iterator->next = tmp;
 
 		return sym;
 
@@ -800,5 +777,20 @@ void printSymbolTable(symbol * head)
 	{
 		printf("%d\t%s\t%.2f\t%d\t%d\n", tmp->kind, tmp->name, tmp->val, tmp->level, tmp->addr);
 		tmp = tmp->next;
+	}
+}
+
+void printCode(instruction * code, int * cx, int print)
+{
+	FILE * fp = fopen("tmp/instructions.a", "w");
+	printf("\nCODE\n");
+	printf("OP\tR\tL\tM\n");
+
+	for (int i=0; i < *cx; i++)
+	{
+		if (print == 1)
+			printf("%d\t%d\t%d\t%d\n", code[i].op, code[i].R, code[i].L, code[i].M);
+
+		fprintf(fp, "%d\t%d\t%d\t%d\n", code[i].op, code[i].R, code[i].L, code[i].M);
 	}
 }
