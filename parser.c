@@ -45,6 +45,8 @@ token * expression(token * tok, symbol * head, instruction * code, int * cx);
 token * condition(token * tok, symbol * head, instruction * code, int * cx);
 token * factor(token * tok, symbol * head, instruction * code, int * cx);
 token * term(token * tok,symbol * head, instruction * code, int * cx);
+
+// symbol table
 int isRelationalOperator(char *p);
 void throwError(int err);
 int findVar(symbol *head, char *name);
@@ -52,7 +54,7 @@ symbol * insertSym(symbol * sym, int kind, char * name, double val, int level, i
 symbol * createNewSymbolTable();
 int setNewLevel(int level,symbolTableLevels * levels);
 int getNewAddress(int level,symbolTableLevels * levels);
-
+void printSymbolTable(symbol * head);
 // code generation
 void printCode(instruction * code, int * cx);
 void emit(instruction * code, int * cx, int op, int R, int L, int M);
@@ -82,9 +84,11 @@ int main(int argc, char ** argv)
 
 	parser(head, symbolTableHead, code, cx);
 	printCode(code, cx);
-
+	printSymbolTable(symbolTableHead);
 	return 0;
 }
+
+
 
 // adds a line of code to our array
 void emit(instruction * code, int * cx, int op, int R, int L, int M)
@@ -784,4 +788,17 @@ int getNewAddress(int level,symbolTableLevels * levels)
   t->addressCount++;
 
   return t->addressCount;
+}
+
+void printSymbolTable(symbol * head)
+{
+	printf("\nSymbol Table\n");
+
+	symbol * tmp = head->next;
+
+	while(tmp != NULL)
+	{
+		printf("%d\t%s\t%.2f\t%d\t%d\n", tmp->kind, tmp->name, tmp->val, tmp->level, tmp->addr);
+		tmp = tmp->next;
+	}
 }
