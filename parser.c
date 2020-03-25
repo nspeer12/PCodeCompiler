@@ -378,7 +378,9 @@ token * statement(token * tok, symbol * head, instruction * code, int * cx)
 
 		// jump for if condition
 		int cxtmp = *cx;
-		emit(code, cx, 0, 0, 0, 0);
+
+		// OP JMP = 7
+		emit(code, cx, 7, 0, 0, 0);
 		tok = statement(tok, head, code, cx);
 		code[cxtmp].M = *cx;
 	}
@@ -390,7 +392,9 @@ token * statement(token * tok, symbol * head, instruction * code, int * cx)
 		tok = condition(tok, head, code, cx);
 
 		int cx2 = *cx;
-		emit(code, cx, -1, -1, -1, -1);
+
+		// OP JPC = 8
+		emit(code, cx, 8, 0, 0, 0);
 
 		if (tok->type != dosym)
 		{
@@ -403,7 +407,9 @@ token * statement(token * tok, symbol * head, instruction * code, int * cx)
 		}
 		tok = statement(tok, head, code, cx);
 
-		emit(code, cx, 0, 0, 0, cx1);
+		// jump to beginning
+		// OP JMP = 7
+		emit(code, cx, 7, 0, 0, cx1);
 		code[cx2].M = *cx;
 	}
 
@@ -448,7 +454,6 @@ token * condition(token * tok, symbol * head, instruction * code, int * cx)
 
 token * expression(token * tok, symbol * head, instruction * code, int * cx)
 {
-	// using a temporary token
 	token * addop;
 	// printf("\t***\tEXPRESSION\t***\n");
 
@@ -462,7 +467,8 @@ token * expression(token * tok, symbol * head, instruction * code, int * cx)
 		if (addop->type == minussym)
 		{
 			// emit (OP, 0, OPR_NEG)
-			emit(code, cx, 69, 69, 69, -699);
+			// OP OPR_NEG = 12
+			emit(code, cx, 12, 0, 0, 0);
 		}
 	}
 	else
@@ -480,12 +486,14 @@ token * expression(token * tok, symbol * head, instruction * code, int * cx)
 		if (addop->type == plussym)
 		{
 			// emit(OP, 0, OPR_ADD)
-			emit(code, cx, 69, 69, 69, 0xadd);
+			// OP Add = 13
+			emit(code, cx, 13, 0, 0, 0);
 		}
 		else if (addop->type == minussym)
 		{
 			// emit (OPR, 0, OPR_SUB)
-			emit(code, cx, 69, 69, 69, -69);
+			// OP 14 is subtraction
+			emit(code, cx, 14, 0, 0, 0);
 		}
 	}
 
@@ -510,12 +518,14 @@ token * term(token * tok,symbol * head, instruction * code, int * cx)
 		// multiplication
 		if (mulop->type == multsym)
 		{
-			emit(code, cx, 0, 12, 21, 8);
+			// OP Multiply = 15
+			emit(code, cx, 15, 0, 0, 0);
 		}
 		// division
 		else
 		{
-			emit(code, cx, 3, 3, 3, 3);
+			// OP Division = 16
+			emit(code, cx, 16, 0, 0, 0);
 		}
 	}
 
