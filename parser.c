@@ -43,8 +43,8 @@ token * program(token * tok, symbol * head, instruction * code, int * cx);
 token * statement(token * tok, symbol * head, instruction * code, int * cx);
 token * expression(token * tok, symbol * head, instruction * code, int * cx);
 token * condition(token * tok, symbol * head, instruction * code, int * cx);
-token * factor(token * tok, symbol * head, instruction * code, int * cx);
-token * term(token * tok,symbol * head, instruction * code, int * cx);
+token * factor(token * tok, symbol * head, instruction * code, int * cx, int reg);
+token * term(token * tok,symbol * head, instruction * code, int * cx, int reg);
 
 // symbol table
 int isRelationalOperator(char *p);
@@ -92,23 +92,7 @@ int main(int argc, char ** argv)
 
 
 
-// adds a line of code to our array
-void emit(instruction * code, int * cx, int op, int R, int L, int M)
-{
-	if (*cx > MAX_CODE_SIZE)
-	{
 
-		throwError(25);
-	}
-	else
-	{
-		code[*cx].op = op;
-		code[*cx].R = R;
-		code[*cx].L = L;
-		code[*cx].M = M;
-		*cx = *cx + 1;
-	}
-}
 
 void parser(token * tok, symbol * head, instruction * code, int * cx)
 {
@@ -426,11 +410,12 @@ token * expression(token * tok, symbol * head, instruction * code, int * cx)
 	token * addop;
 	// printf("\t***\tEXPRESSION\t***\n");
 
+
 	if (tok->type == plussym || tok->type == minussym)
 	{
 		addop = tok;
 		tok = fetch(tok);
-		tok = term(tok, head, code, cx);
+		tok = term(tok, head, code, cx, 0);
 
 		// negation
 		if (addop->type == minussym)
@@ -442,8 +427,7 @@ token * expression(token * tok, symbol * head, instruction * code, int * cx)
 	}
 	else
 	{
-		tok = term(tok, head, code, cx);
-		// need to store this token's value
+		tok = term(tok, head, code, cx, 0);
 	}
 
 	while(tok->type == plussym || tok->type == minussym)
@@ -451,58 +435,58 @@ token * expression(token * tok, symbol * head, instruction * code, int * cx)
 		addop = tok;
 
 		tok = fetch(tok);
-		tok = term(tok, head, code, cx);
+		// load the next value in at the second index
+		tok = term(tok, head, code, cx, 1);
 
 		if (addop->type == plussym)
 		{
-			// emit(OP, 0, OPR_ADD)
 			// OP Add = 13
-			emit(code, cx, 13, 0, 0, 0);
+			// add two numbers
+			emit(code, cx, 13, 0, 0, 1);
 		}
 		else if (addop->type == minussym)
 		{
-			// emit (OPR, 0, OPR_SUB)
 			// OP 14 is subtraction
-			emit(code, cx, 14, 0, 0, 0);
+			emit(code, cx, 14, 0, 0, 1);
 		}
 	}
 
-	// put
+
 	return tok;
 }
 
-token * term(token * tok,symbol * head, instruction * code, int * cx)
+token * term(token * tok,symbol * head, instruction * code, int * cx, int reg)
 {
 	// printf("\t***\tTERM\t***\n");
 	token * mulop;
 
-	tok = factor(tok, head, code, cx);
+	tok = factor(tok, head, code, cx, reg);
 
 	while(tok->type == multsym || tok->type == slashsym)
 	{
 		mulop = tok;
 
 		tok = fetch(tok);
-		tok = factor(tok, head, code, cx);
+		tok = factor(tok, head, code, cx, reg);
 
 		// multiplication
 		if (mulop->type == multsym)
 		{
 			// OP Multiply = 15
-			emit(code, cx, 15, 0, 0, 0);
+			emit(code, cx, 15, reg, 0, atoi(tok->value));
 		}
 		// division
 		else
 		{
 			// OP Division = 16
-			emit(code, cx, 16, 0, 0, 0);
+			emit(code, cx, 16, reg, 0, atoi(tok->value));
 		}
 	}
 
   return tok;
 }
 
-token * factor(token * tok, symbol * head, instruction * code, int * cx)
+token * factor(token * tok, symbol * head, instruction * code, int * cx, int reg)
 {
 
 	// printf("\t***\tFACTOR\t***\n");
@@ -521,13 +505,13 @@ token * factor(token * tok, symbol * head, instruction * code, int * cx)
 		// constant
 		else if (tmp->kind == 1)
 		{
-			emit(code, cx, 1, 0, 0, tmp->val);
+			emit(code, cx, 1, reg, 0, tmp->val);
 		}
 		// variable
 		else if (tmp->kind == 2)
 		{
 			// LOD from stack into register
-			emit(code, cx, 3, 0, 0, tmp->addr);
+			emit(code, cx, 3, reg, 0, tmp->addr);
 		}
 
 		tok = fetch(tok);
@@ -535,7 +519,7 @@ token * factor(token * tok, symbol * head, instruction * code, int * cx)
 	else if (tok->type == numbersym)
 	{
 		// PUT NUMBER INTO REGISTER USING LIT
-		emit(code, cx, 1, 0, 0, atoi(tok->value));
+		emit(code, cx, 1, reg, 0, atoi(tok->value));
 		tok = fetch(tok);
 
 
@@ -865,5 +849,23 @@ void printCode(instruction * code, int * cx, int print)
 			printf("%d\t%d\t%d\t%d\n", code[i].op, code[i].R, code[i].L, code[i].M);
 
 		fprintf(fp, "%d %d %d %d\n", code[i].op, code[i].R, code[i].L, code[i].M);
+	}
+}
+
+// adds a line of code to our array
+void emit(instruction * code, int * cx, int op, int R, int L, int M)
+{
+	if (*cx > MAX_CODE_SIZE)
+	{
+
+		throwError(25);
+	}
+	else
+	{
+		code[*cx].op = op;
+		code[*cx].R = R;
+		code[*cx].L = L;
+		code[*cx].M = M;
+		*cx = *cx + 1;
 	}
 }
