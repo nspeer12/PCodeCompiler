@@ -1,4 +1,4 @@
-// Created By: 
+// Created By:
 // Stephen Speer
 // Danish Siddiqui
 
@@ -343,12 +343,12 @@ instruction * get_instructions(FILE * fp, int numLines)
 void print_state(instruction IR, int * stack, int PC, int BP, int SP, int * registerFile, int * activationRecord)
 {
 	printf("\t%d\t%d\t%d\t", PC, BP, SP);
-	for (int i = 0; i < 8; i ++)
+	for (int i = 0; i <= 8; i ++)
 		printf("%d ", registerFile[i]);
 
 	printf("\nStack: ");
 
-	for (int i = 0; i < SP; i ++)
+	for (int i = 0; i <= SP; i ++)
 	{
 		printf("%d", stack[i]);
 		if (activationRecord[i] == 1)
