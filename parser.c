@@ -55,6 +55,8 @@ symbol * createNewSymbolTable();
 int setNewLevel(int level,symbolTableLevels * levels);
 int getNewAddress(int level,symbolTableLevels * levels);
 void printSymbolTable(symbol * head);
+int findVal(symbol * head, char * name);
+
 // code generation
 void printCode(instruction * code, int * cx, int print);
 void emit(instruction * code, int * cx, int op, int R, int L, int M);
@@ -218,9 +220,6 @@ token * block(token * tok, symbol * head, instruction * code, int * cx)
   // Also in the sample pseudo code errors.
   // Therefore if we check for varsym rather than intsym we'll be good.
 
-	// TODO: allocate room for variable on stack
-	// TODO: store that location in the symbol table
-
 	if (tok->type == varsym)
 	{
    	char * name = malloc(sizeof(char)*15);
@@ -254,7 +253,6 @@ token * block(token * tok, symbol * head, instruction * code, int * cx)
 		tok = fetch(tok);
 	}
 
-	// TODO: add variables into code
 	/***
 		//The tentative jump address is fixed up
 		code[table[tx0].addr].m=cx;
@@ -304,7 +302,7 @@ token * statement(token * tok, symbol * head, instruction * code, int * cx)
 		tok = expression(tok, head, code, cx);
 
 		// store the register into the stack
-		emit(code, cx, 4, 0, 0, addr-1);
+		emit(code, cx, 4, 0, 0, addr);
 
 	}
 	else if (tok->type == beginsym)
@@ -511,8 +509,8 @@ token * factor(token * tok, symbol * head, instruction * code, int * cx)
 
 	if (tok->type == identsym)
 	{
-		// TODO: search for the variable of the ident and load it into register
-
+		// DONE: search for the variable of the ident and load it into register
+		emit(code, cx, 1, 0, 0, findVal(head, tok->value));
 		tok = fetch(tok);
 	}
 	else if (tok->type == numbersym)
@@ -576,7 +574,7 @@ symbol * insertSym(symbol * sym, int kind, char * name, double val, int level, i
     symbol * iterator = sym;
 
 	 // need to account for addresses
-	 // NOTE: start at address 4, because 0 - 3 are reserved by the VM
+	 // NOTE: start at address -1, since
 	 int i = 0;
     while(iterator->next != NULL)
     {
@@ -732,7 +730,7 @@ int findVar(symbol *head, char *name)
   symbol *temp = malloc(sizeof(symbol));
   temp = head;
 
-  while((strcmp(temp->name,name) != 0) && temp != NULL)
+  while(temp != NULL && strcmp(temp->name,name) != 0)
   {
     temp = temp->next;
   }
@@ -745,6 +743,29 @@ int findVar(symbol *head, char *name)
 
 	// return memory address
   	return temp->addr;
+}
+
+int findVal(symbol * head, char * name)
+{
+	printf("searching for %s\n", name);
+	// start after the head
+	symbol * temp = head->next;
+	printf("HEre");
+	fflush(stdout);
+   while(temp != NULL && (strcmp(temp->name,name) != 0))
+   {
+     temp = temp->next;
+   }
+
+   if(temp == NULL)
+   {
+     // error the variable we are referring to in the arithmetic doesn't even exist.
+	  printf("variable was not found");
+	  return -100000000;
+   }
+
+ 	// return value
+   return temp->val;
 }
 
 int setNewLevel(int level, symbolTableLevels * levels)
