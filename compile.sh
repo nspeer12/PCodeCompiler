@@ -98,7 +98,7 @@ rm parser.o
 if [ $VM = "1" ]
 then
 	gcc "vm.c" -o vm.o
-	./vm.o $file
+	./vm.o "tmp/instructions.a"
 	rm vm.o
 fi
 
