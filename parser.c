@@ -467,19 +467,19 @@ token * term(token * tok,symbol * head, instruction * code, int * cx, int reg)
 		mulop = tok;
 
 		tok = fetch(tok);
-		tok = factor(tok, head, code, cx, reg);
+		tok = factor(tok, head, code, cx, 1);
 
 		// multiplication
 		if (mulop->type == multsym)
 		{
 			// OP Multiply = 15
-			emit(code, cx, 15, reg, 0, atoi(tok->value));
+			emit(code, cx, 15, 0, 0, 1);
 		}
 		// division
 		else
 		{
 			// OP Division = 16
-			emit(code, cx, 16, reg, 0, atoi(tok->value));
+			emit(code, cx, 16, 0, 0, 1);
 		}
 	}
 
