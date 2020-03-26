@@ -211,16 +211,20 @@ token * block(token * tok, symbol * head, instruction * code, int * cx)
 			return NULL;
 		}
 
+		tok = fetch(tok);
 	}
 
   // - Danish. Prof uses intsym and varsym interchangably in the sample symbol outputs.
   // Also in the sample pseudo code errors.
   // Therefore if we check for varsym rather than intsym we'll be good.
 
+	// TODO: allocate room for variable on stack
+	// TODO: store that location in the symbol table
+
 	if (tok->type == varsym)
 	{
-    char * name = malloc(sizeof(char)*15);
-    double value = 0;
+   	char * name = malloc(sizeof(char)*15);
+    	double value = 0;
 
 		do
 		{
@@ -235,6 +239,9 @@ token * block(token * tok, symbol * head, instruction * code, int * cx)
       	// insert variable into symbol table.
       	insertSym(head, 2, name, value, setNewLevel(levelCount,levels), getNewAddress(levelCount,levels));
 			tok = fetch(tok);
+
+			// allocate stack memory
+			emit(code, cx, 6, 0, 0, 1);
 
 		} while(tok->type == commasym);
 
@@ -269,15 +276,17 @@ token * block(token * tok, symbol * head, instruction * code, int * cx)
 
 token * statement(token * tok, symbol * head, instruction * code, int * cx)
 {
-	// DECLARING VARIABLES
+	// DECLARING SHIT
 	//	printf("\t***\tSTATEMENT\t***\n");
+	int addr;
 
 	if (tok->type == identsym)
 	{
 	    // check if this variable exists in symbol table.
 	    // if it doesn't throw error.
-
-	    if(!findVar(head,tok->value))
+		 addr = findVar(head,tok->value);
+		 // check for valid addres
+	    if(addr == -1)
 	    {
 	      // printf("Variable identifier being used doesn't exist in the symbol table. ");
 	      return NULL;
@@ -294,8 +303,8 @@ token * statement(token * tok, symbol * head, instruction * code, int * cx)
 		tok = fetch(tok);
 		tok = expression(tok, head, code, cx);
 
-		// LIT the value into a register
-		// STO it into
+		// store the register into the stack
+		emit(code, cx, 4, 0, 0, addr-1);
 
 	}
 	else if (tok->type == beginsym)
@@ -502,6 +511,8 @@ token * factor(token * tok, symbol * head, instruction * code, int * cx)
 
 	if (tok->type == identsym)
 	{
+		// TODO: search for the variable of the ident and load it into register
+
 		tok = fetch(tok);
 	}
 	else if (tok->type == numbersym)
@@ -566,18 +577,14 @@ symbol * insertSym(symbol * sym, int kind, char * name, double val, int level, i
 
 	 // need to account for addresses
 	 // NOTE: start at address 4, because 0 - 3 are reserved by the VM
-	 int i = 4;
+	 int i = 0;
     while(iterator->next != NULL)
     {
       iterator = iterator->next;
-		i++;
 
-		if (i > 7)
-		{
-			printf("Error, not enough registers");
-			return NULL;
-		}
-
+		// only account for varaibles
+		if (iterator->addr > 0)
+			i++;
     }
 
 		symbol * tmp = malloc(sizeof(symbol));
@@ -586,15 +593,16 @@ symbol * insertSym(symbol * sym, int kind, char * name, double val, int level, i
 		tmp->val = val;
 		tmp->level = level;
 
+
 		// allow for custom insertions into symbol table
 		if (addr < 0)
 		{
 			// use counter variable
-			tmp->addr = i;
+			tmp->addr = addr;
 		}
 		else
 		{
-			tmp->addr = addr;
+			tmp->addr = i;
 		}
 
 		tmp->next = NULL;
