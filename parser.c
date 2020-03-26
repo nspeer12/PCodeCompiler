@@ -55,7 +55,7 @@ symbol * createNewSymbolTable();
 int setNewLevel(int level,symbolTableLevels * levels);
 int getNewAddress(int level,symbolTableLevels * levels);
 void printSymbolTable(symbol * head);
-int findVal(symbol * head, char * name);
+symbol * findVal(symbol * head, char * name);
 
 // code generation
 void printCode(instruction * code, int * cx, int print);
@@ -509,8 +509,27 @@ token * factor(token * tok, symbol * head, instruction * code, int * cx)
 
 	if (tok->type == identsym)
 	{
-		// DONE: search for the variable of the ident and load it into register
-		emit(code, cx, 1, 0, 0, findVal(head, tok->value));
+		// DONE: search for the constant
+		symbol * tmp = findVal(head, tok->value);
+
+		// check if the value was a constant in the symbol table
+		if (tmp == NULL)
+		{
+			printf("varaible or constant %s undeclared\n", tok->value);
+
+		}
+		// constant
+		else if (tmp->kind == 1)
+		{
+			emit(code, cx, 1, 0, 0, tmp->val);
+		}
+		// variable
+		else if (tmp->kind == 2)
+		{
+			// LOD from stack into register
+			emit(code, cx, 3, 0, 0, tmp->addr);
+		}
+
 		tok = fetch(tok);
 	}
 	else if (tok->type == numbersym)
@@ -581,7 +600,7 @@ symbol * insertSym(symbol * sym, int kind, char * name, double val, int level, i
       iterator = iterator->next;
 
 		// only account for varaibles
-		if (iterator->addr > 0)
+		if (iterator->kind == 2)
 			i++;
     }
 
@@ -745,13 +764,11 @@ int findVar(symbol *head, char *name)
   	return temp->addr;
 }
 
-int findVal(symbol * head, char * name)
+symbol * findVal(symbol * head, char * name)
 {
-	printf("searching for %s\n", name);
 	// start after the head
 	symbol * temp = head->next;
-	printf("HEre");
-	fflush(stdout);
+
    while(temp != NULL && (strcmp(temp->name,name) != 0))
    {
      temp = temp->next;
@@ -761,11 +778,11 @@ int findVal(symbol * head, char * name)
    {
      // error the variable we are referring to in the arithmetic doesn't even exist.
 	  printf("variable was not found");
-	  return -100000000;
+	  return NULL;
    }
 
- 	// return value
-   return temp->val;
+ 	// return pointer to symbol
+   return temp;
 }
 
 int setNewLevel(int level, symbolTableLevels * levels)
