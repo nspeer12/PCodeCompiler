@@ -74,7 +74,7 @@ int main(int argc, char ** argv)
 	}
 
 	// store code in array
-	instruction * code = malloc(sizeof(instruction) * MAX_CODE_SIZE);
+	instruction code [MAX_CODE_SIZE];
 	// keep track of current instruction
 	int * cx = malloc(sizeof(int));
 	*cx = 0;
@@ -106,8 +106,6 @@ void emit(instruction * code, int * cx, int op, int R, int L, int M)
 		code[*cx].M = M;
 		*cx = *cx + 1;
 	}
-
-	printf("added line of code\n");
 }
 
 void parser(token * tok, symbol * head, instruction * code, int * cx)
@@ -122,20 +120,13 @@ token * program(token * tok, symbol * head, instruction * code, int * cx)
 	tok = fetch(tok);
 
 	// check for null token just incase empty list
-	if (tok == NULL)
-	{
-		return NULL;
-	}
-	else
-	{
-		tok = block(tok, head, code, cx);
+	tok = block(tok, head, code, cx);
 
-		if (tok->type != periodsym)
-		{
-			// missing period
-			throwError(9);
-			return NULL;
-		}
+	if (tok->type != periodsym)
+	{
+		// missing period
+		throwError(9);
+		return NULL;
 	}
 
   	return tok;
@@ -147,6 +138,22 @@ token * block(token * tok, symbol * head, instruction * code, int * cx)
 
   levels->addressCount = 3;
   levels->next = NULL;
+
+	// allocate space in the stack
+	int stackidx = 4;
+
+	/***
+		int dx, tx0, cx0;
+		//this changes the amount in M for INC calls, so if dx=3; we will only create space for sp,bp,pc, which throws off vm.c, but if dx=4; meaning we will create space for sp,bp,pc,and retrun value, which makes vm.c work properly.
+		dx=4;
+		tx0=tx;
+		table[tx].addr=cx;
+		emit(7,0,0, code); // 7 is JMP for op, 0 is for L and 0 for M
+	***/
+	// emit(code, cx, 7, 0, 0, 0);
+	//	int tx = getTableIndex(head);
+	// set memory address in symbol table
+
 
 	if (tok->type == constsym)
 	{
@@ -223,14 +230,10 @@ token * block(token * tok, symbol * head, instruction * code, int * cx)
 				//printf("identsym error in block/insym\n");
 				return NULL;
 			}
-      strcpy(name,tok->value);
+			strcpy(name,tok->value);
 
-      // everything good to go.
-      // variable has been declared.
-      // insert into symbol table.
-      // symbol * insertSym(symbol * sym, int kind, char * name, double val, int level, int addr);
-      insertSym(head, 2, name, value, setNewLevel(levelCount,levels), getNewAddress(levelCount,levels));
-
+      	// insert variable into symbol table.
+      	insertSym(head, 2, name, value, setNewLevel(levelCount,levels), getNewAddress(levelCount,levels));
 			tok = fetch(tok);
 
 		} while(tok->type == commasym);
@@ -244,26 +247,41 @@ token * block(token * tok, symbol * head, instruction * code, int * cx)
 		tok = fetch(tok);
 	}
 
+	// TODO: add variables into code
+	/***
+		//The tentative jump address is fixed up
+		code[table[tx0].addr].m=cx;
+		//the space for address for the above jmp is now occupied by the new cx
+		table[tx0].addr=cx;
+		//inc 0, dx is generated. At run time, the space of dx is secured
+		cx0=cx;
+		emit(6, 0, dx, code); // 6 is INC for op, 0 is for L, and dx is M
+		statement(lev, &tx, ifp, code, table);
+		emit(2, 0, 0, code); // 2 is OPR for op, 0 is RET for M inside OPR
+	***/
+
+
 	tok = statement(tok, head, code, cx);
+
 
 	return tok;
 }
 
 token * statement(token * tok, symbol * head, instruction * code, int * cx)
 {
-
+	// DECLARING VARIABLES
 	//	printf("\t***\tSTATEMENT\t***\n");
 
 	if (tok->type == identsym)
 	{
-    // check if this variable exists in symbol table.
-    // if it doesn't throw error.
+	    // check if this variable exists in symbol table.
+	    // if it doesn't throw error.
 
-    if(!findVar(head,tok->value))
-    {
-      // printf("Variable identifier being used doesn't exist in the symbol table. ");
-      return NULL;
-    }
+	    if(!findVar(head,tok->value))
+	    {
+	      // printf("Variable identifier being used doesn't exist in the symbol table. ");
+	      return NULL;
+	    }
 
 		tok = fetch(tok);
 
@@ -276,10 +294,8 @@ token * statement(token * tok, symbol * head, instruction * code, int * cx)
 		tok = fetch(tok);
 		tok = expression(tok, head, code, cx);
 
-		// ** ERROR LOCATION **
-		// added in this line, partially working for now
-		// basically, there is a fetch missing that is causing errors
-		// tok = fetch(tok);
+		// LIT the value into a register
+		// STO it into
 
 	}
 	else if (tok->type == beginsym)
@@ -292,7 +308,6 @@ token * statement(token * tok, symbol * head, instruction * code, int * cx)
 			tok = fetch(tok);
 			tok = statement(tok, head, code, cx);
 		}
-
 
 		if (tok->type != endsym)
 		{
@@ -315,7 +330,6 @@ token * statement(token * tok, symbol * head, instruction * code, int * cx)
 
 		if (tok->type != thensym)
 		{
-
 			// printf("thensym error in statament/ifsym\n");
 			return NULL;
 		}
@@ -422,6 +436,7 @@ token * expression(token * tok, symbol * head, instruction * code, int * cx)
 	else
 	{
 		tok = term(tok, head, code, cx);
+		// need to store this token's value
 	}
 
 	while(tok->type == plussym || tok->type == minussym)
@@ -445,9 +460,9 @@ token * expression(token * tok, symbol * head, instruction * code, int * cx)
 		}
 	}
 
+	// put
 	return tok;
 }
-
 
 token * term(token * tok,symbol * head, instruction * code, int * cx)
 {
@@ -491,7 +506,11 @@ token * factor(token * tok, symbol * head, instruction * code, int * cx)
 	}
 	else if (tok->type == numbersym)
 	{
+		// PUT NUMBER INTO REGISTER USING LIT
+		emit(code, cx, 1, 0, 0, atoi(tok->value));
 		tok = fetch(tok);
+
+
 	}
 	else if (tok->type == lparentsym)
 	{
@@ -713,13 +732,14 @@ int findVar(symbol *head, char *name)
   if(temp == NULL)
   {
     // error the variable we are referring to in the arithmetic doesn't even exist.
-    return 0;
+    return -1;
   }
 
-  return 1;
+	// return memory address
+  	return temp->addr;
 }
 
-int setNewLevel(int level,symbolTableLevels * levels)
+int setNewLevel(int level, symbolTableLevels * levels)
 {
   // iterate to last level.
   symbolTableLevels * t = levels;
@@ -756,6 +776,20 @@ int getNewAddress(int level,symbolTableLevels * levels)
   return t->addressCount;
 }
 
+int getTableIndex(symbol * head)
+{
+	int i = 0;
+	symbol * tmp = head;
+
+	while(tmp != NULL)
+	{
+		tmp = tmp->next;
+		i++;
+	}
+
+	return i;
+}
+
 void printSymbolTable(symbol * head)
 {
 	printf("\nSymbol Table\n");
@@ -784,6 +818,6 @@ void printCode(instruction * code, int * cx, int print)
 		if (print == 1)
 			printf("%d\t%d\t%d\t%d\n", code[i].op, code[i].R, code[i].L, code[i].M);
 
-		fprintf(fp, "%d\t%d\t%d\t%d\n", code[i].op, code[i].R, code[i].L, code[i].M);
+		fprintf(fp, "%d %d %d %d\n", code[i].op, code[i].R, code[i].L, code[i].M);
 	}
 }
