@@ -245,7 +245,7 @@ token * statement(token * tok, symbol * head, instruction * code, int * cx, int 
 		tok = expression(tok, head, code, cx, reg);
 
 		// store the register into the stack
-		emit(code, cx, 4, 0, 0, addr);
+		emit(code, cx, 4, reg, 0, addr);
 	}
 	else if (tok->type == beginsym)
 	{
@@ -291,7 +291,7 @@ token * statement(token * tok, symbol * head, instruction * code, int * cx, int 
 		int cxtmp = *cx;
 
 		// OP JPC == 8
-		emit(code, cx, 8, reg, 0, cxtmp);
+		emit(code, cx, 8, reg, 0, 0);
 		tok = statement(tok, head, code, cx, reg);
 
 		// change the jump to the line fo code for the statemnet
@@ -299,30 +299,34 @@ token * statement(token * tok, symbol * head, instruction * code, int * cx, int 
 	}
 	else if (tok->type == whilesym)
 	{
+		// beggining of loop
 		int cx1 = *cx;
 
 		tok = fetch(tok);
 		tok = condition(tok, head, code, cx, reg);
 
+		// to control jump
 		int cx2 = *cx;
-
-		// OP JPC = 8
-		emit(code, cx, 8, reg, 0, cx2);
+		// jpc to break loop
+		emit(code, &cx2, 8, reg, 0, 0);
 
 		if (tok->type != dosym)
 		{
-			// printf("dosym error in statement/whilesym\n");
+			// printf("dosym error in statament/whilesym\n");
 			return NULL;
 		}
 		else
 		{
 			tok = fetch(tok);
 		}
+
+
 		tok = statement(tok, head, code, cx, reg);
 
-		// jump to beginning
-		// OP JMP = 7
+		// jump unconditionally to beggining of loop
 		emit(code, cx, 7, 0, 0, cx1);
+
+		// change cx2 so we can break loop
 		code[cx2].M = *cx;
 	}
 
@@ -334,7 +338,7 @@ token * condition(token * tok, symbol * head, instruction * code, int * cx, int 
 	if (tok->type == oddsym)
 	{
 		tok = fetch(tok);
-		tok = expression(tok, head, code, cx, reg+1);
+		tok = expression(tok, head, code, cx, reg);
 	}
 	else
 	{
@@ -401,7 +405,6 @@ token * expression(token * tok, symbol * head, instruction * code, int * cx, int
 			emit(code, cx, 14, reg, reg, reg+1);
 		}
 	}
-
 
 	return tok;
 }
