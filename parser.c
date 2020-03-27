@@ -307,7 +307,7 @@ token * statement(token * tok, symbol * head, instruction * code, int * cx, int 
 		int cx2 = *cx;
 
 		// OP JPC = 8
-		emit(code, cx, 8, reg+1, 0, cx2);
+		emit(code, cx, 8, reg, 0, cx2);
 
 		if (tok->type != dosym)
 		{

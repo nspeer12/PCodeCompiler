@@ -170,7 +170,7 @@ int main(int argc, char *argv[])
 			case(8):
 				// jump to instruction M if R == 0
 				printf("jpc %d, 0, %d ", IR.R, IR.M);
-				if (registerFile[IR.M] == 0)
+				if (registerFile[IR.R] == 0)
 					PC = IR.M;
 				break;
 
@@ -428,7 +428,18 @@ void print_code(instruction * code, int codeLen, int * stack, int * registers, i
 				// set halt flag to 1, end of program
 				printf("%d\tsio\t0\t0\t3\n", i);
 				break;
-
+			case(12):
+				// set halt flag to 1, end of program
+				///printf("%d\t\t0\t0\t3\n", i);
+				break;
+			case(13):
+				// set halt flag to 1, end of program
+				printf("%d\tadd\t%d\t%d\t%d\n", code[i].R, code[i].L, code[i].M);
+				break;
+			case(14):
+				// set halt flag to 1, end of program
+				printf("%d\tsub\t%d\t%d\t%d\n", code[i].R, code[i].L, code[i].M);
+				break;
 			default:
 				break;
 		}
