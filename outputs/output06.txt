@@ -1,0 +1,27 @@
+ERROR #2: Number longer than 5 digits!
+ERROR #2: Number longer than 5 digits!
+Lexeme List
+constsym	28	const
+identsym	2	pasta
+eqlsym	9	=
+numbersym	3	5
+commasym	17	,
+identsym	2	pizza
+eqlsym	9	=
+	0	
+semicolonsym	18	;
+varsym	29	var
+identsym	2	x
+commasym	17	,
+identsym	2	y
+semicolonsym	18	;
+beginsym	21	begin
+identsym	2	x
+becomessym	20	:=
+	0	
+semicolonsym	18	;
+endsym	22	end
+periodsym	19	.
+
+Generated Assembly Code
+

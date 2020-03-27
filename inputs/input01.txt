@@ -1,8 +1,7 @@
-/* input for lex.c */
-const poop = 5, pee = 69;
+/* simple and constant variable declaration */
+const pasta = 5;
 var x, y;
 begin
-	x:=6*9;
-	x:=x*3;
-	x:=x/3;
+	x := 40;
+	y := x + pasta;
 end.

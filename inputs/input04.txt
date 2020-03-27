@@ -1,3 +1,9 @@
+/* nested if statements */
+const pasta = 5;
+var x, y;
 begin
-	x := 5;
+	x := 40 * pasta;
+	if (x/40) = pasta then
+		if (x/40) = pasta then
+			x := pasta * pasta * pasta
 end.

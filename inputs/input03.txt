@@ -1,4 +1,8 @@
+/* if statements */
+const pasta = 5;
 var x, y;
 begin
-	x := y + 56
+	x := 40 * pasta;
+	if (x/40) = pasta then
+		y := 33;
 end.

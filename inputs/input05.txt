@@ -1,10 +1,9 @@
-/* input for lex.c */
-var x, y, z, k, i;
+/* nested while and if statements */
+const pasta = 5, pizza = 12345;
+var x, y;
 begin
-  x := 3;
-  y := x + 69;
-  z := y - 69;
-  k := z * 69;
-  i := z / 69;
-
+	x := 400 * pasta;
+	while (x/40) > pasta do
+		if x < pizza then
+			x := x / pasta;
 end.

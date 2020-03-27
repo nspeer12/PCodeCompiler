@@ -1,0 +1,6 @@
+/* variables are too long */
+const pasta = 5, pizza = 1234445;
+var x, y;
+begin
+	x := 400100;
+end.
