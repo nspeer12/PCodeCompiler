@@ -71,13 +71,14 @@ fi
 
 # compile Lex and input file and output to temporary location to feed to Parser
 gcc lex.c -o lex.o
+./lex.o $file
 
 # hardcode lex input for now
 if [ $LEX = "1" ]
 then
-	./lex.o $file -l
-else
-	./lex.o $file
+	echo "Lexeme List"
+	cat tmp/lex.output
+	echo
 fi
 
 rm "lex.o"
@@ -85,12 +86,12 @@ rm "lex.o"
 # compile parser
 # TODO: handle input arguments
 gcc parser.c -o parser.o
-
+./parser.o
 if [ $ASSEMBLY = "1" ]
 then
-	./parser.o -a
-else
-	./parser.o
+	echo "Generated Assembly Code"
+	cat tmp/instructions.a
+	echo
 fi
 
 rm parser.o
@@ -101,6 +102,3 @@ then
 	./vm.o "tmp/instructions.a"
 	rm vm.o
 fi
-
-
-echo # extra space ;)
