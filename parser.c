@@ -48,13 +48,12 @@ token * term(token * tok,symbol * head, instruction * code, int * cx, int reg);
 // symbol table
 int isRelationalOperator(char *p);
 void throwError(int err);
-int findVar(symbol *head, char *name);
 symbol * insertSym(symbol * sym, int kind, char * name, double val, int level, int addr);
 symbol * createNewSymbolTable();
 int setNewLevel(int level,symbolTableLevels * levels);
 int getNewAddress(int level,symbolTableLevels * levels);
 void printSymbolTable(symbol * head);
-symbol * findVal(symbol * head, char * name);
+symbol * findVar(symbol * head, char * name);
 
 // code generation
 void printCode(instruction * code, int * cx, int print);
@@ -66,8 +65,8 @@ int main(int argc, char ** argv)
 	char * filename = "tmp/lex.output";
 
 	// print argument
-	int print = (argc > 1 && (strcmp(argv[1], "-a") == 0)) ? 1 : 0;
-
+	// int print = (argc > 1 && (strcmp(argv[1], "-a") == 0)) ? 1 : 0;
+	int print = 0;
 	// store code in array
 	instruction code [MAX_CODE_SIZE];
 	// code index counter
@@ -81,8 +80,6 @@ int main(int argc, char ** argv)
 	parser(head, symbolTableHead, code, cx);
 
 	printCode(code, cx, print);
-	if (print == 1)
-		printSymbolTable(symbolTableHead);
 
 	return 0;
 }
@@ -102,7 +99,6 @@ token * program(token * tok, symbol * head, instruction * code, int * cx)
 
 	if (tok->type != periodsym)
 	{
-		// missing period
 		throwError(9);
 		return NULL;
 	}
@@ -131,7 +127,7 @@ token * block(token * tok, symbol * head, instruction * code, int * cx)
 
 			if (tok->type != identsym)
 			{
-				printf("identsym error in block/constsym");
+				throwError(4);
 				return NULL;
 			}
 			else
@@ -143,7 +139,7 @@ token * block(token * tok, symbol * head, instruction * code, int * cx)
 
 			if (tok->type != eqlsym)
 			{
-				printf("eqsym error in block/constsym\n");
+				throwError(3);
 				return NULL;
 			}
 			else
@@ -153,7 +149,7 @@ token * block(token * tok, symbol * head, instruction * code, int * cx)
 
 			if (tok->type != numbersym)
 			{
-				printf("numbersym error in block/constsym\n");
+				throwError(2);
 				return NULL;
 			}
 			else
@@ -170,7 +166,7 @@ token * block(token * tok, symbol * head, instruction * code, int * cx)
 
 		if (tok->type != semicolonsym)
 		{
-			//printf("semicolosym error in block/constsym\n");
+			throwError(5);
 			return NULL;
 		}
 
@@ -205,7 +201,7 @@ token * block(token * tok, symbol * head, instruction * code, int * cx)
 
 		if (tok->type != semicolonsym)
 		{
-			//printf("semicolosym error in block/insym\n");
+			throwError(10);
 			return NULL;
 		}
 
@@ -220,14 +216,15 @@ token * block(token * tok, symbol * head, instruction * code, int * cx)
 
 token * statement(token * tok, symbol * head, instruction * code, int * cx, int reg)
 {
-	//	printf("\t***\tSTATEMENT\t***\n");
-	int addr;
+	symbol * var;
+
 	if (tok->type == identsym)
 	{
 		 // check if this variable exists in symbol table.
-		 addr = findVar(head,tok->value);
+		 var = findVar(head,tok->value);
+
 		 // check for valid addres
-		 if(addr == -1)
+		 if(var == NULL)
 		 {
 			// printf("Variable identifier being used doesn't exist in the symbol table. ");
 			return NULL;
@@ -245,7 +242,7 @@ token * statement(token * tok, symbol * head, instruction * code, int * cx, int 
 		tok = expression(tok, head, code, cx, reg);
 
 		// store the register into the stack
-		emit(code, cx, 4, reg, 0, addr);
+		emit(code, cx, 4, reg, 0, var->addr);
 	}
 	else if (tok->type == beginsym)
 	{
@@ -260,7 +257,7 @@ token * statement(token * tok, symbol * head, instruction * code, int * cx, int 
 
 		if (tok->type != endsym)
 		{
-			// printf("endsym err in statement/beginsym: %s\n", tok->name);
+			throwError(19);
 			return NULL;
 		}
 
@@ -308,11 +305,11 @@ token * statement(token * tok, symbol * head, instruction * code, int * cx, int 
 		// to control jump
 		int cx2 = *cx;
 		// jpc to break loop
-		emit(code, &cx2, 8, reg, 0, 0);
+		emit(code, cx, 8, reg, 0, 0);
 
 		if (tok->type != dosym)
 		{
-			// printf("dosym error in statament/whilesym\n");
+			throwError(18);
 			return NULL;
 		}
 		else
@@ -329,12 +326,44 @@ token * statement(token * tok, symbol * head, instruction * code, int * cx, int 
 		// change cx2 so we can break loop
 		code[cx2].M = *cx;
 	}
+	else if (tok->type == readsym)
+	{
+		// TODO: All of this
+
+		// read
+
+		// get the variable name
+		//tok = fetch(tok);
+		//printf("TOK TYPE %s", tok->type);
+		// OP in to register is 10
+		//emit(code, cx, 10, reg, 0, reg);
+		// store in variable
+
+		/* find variable address and store it in
+		symbol * tmp = findVar(head, tok->value);
+		if (tmp == NULL)
+		{
+			// variable does not exist
+			throwError(11);
+		}
+		else
+		{
+			// store input to variable
+			emit(code, cx, reg, 4, 0, tmp->addr);
+		}
+		*/
+	}
+	else if (tok->type == writesym)
+	{
+		// write
+	}
 
 	return tok;
 }
 
 token * condition(token * tok, symbol * head, instruction * code, int * cx, int reg)
 {
+
 	if (tok->type == oddsym)
 	{
 		tok = fetch(tok);
@@ -348,7 +377,7 @@ token * condition(token * tok, symbol * head, instruction * code, int * cx, int 
 		int rel = isRelationalOperator(tok->value);
 		if (rel == 0)
 		{
-			// printf("relation error in condition/else \n");
+			throwError(20);
 			return NULL;
 		}
 		else
@@ -445,13 +474,13 @@ token * factor(token * tok, symbol * head, instruction * code, int * cx, int reg
 	if (tok->type == identsym)
 	{
 		// search for constant
-		symbol * tmp = findVal(head, tok->value);
+		symbol * tmp = findVar(head, tok->value);
 
 		// check if the value was a constant in the symbol table
 		if (tmp == NULL)
 		{
-			printf("varaible or constant %s undeclared\n", tok->value);
-
+			// variable not found
+			throwError(11);
 		}
 		else if (tmp->kind == 1) // constant
 		{
@@ -473,12 +502,11 @@ token * factor(token * tok, symbol * head, instruction * code, int * cx, int reg
 	}
 	else if (tok->type == lparentsym)
 	{
-		// TODO: "("expression")"
 		tok = fetch(tok);
 		tok = expression(tok, head, code, cx, reg);
 		if (tok->type != rparentsym)
 		{
-			// printf("missing ) in factor/(\n");
+			throwError(22);
 			return NULL;
 		}
 		else
@@ -557,8 +585,11 @@ int isRelationalOperator(char * p)
 	if(strcmp(p,"<>") == 0 ||strcmp(p,"odd") == 0)
 	 	return 17;
 
-  	if(strcmp(p,":=") == 0 || strcmp(p,"=") == 0)
+  	if(strcmp(p,"=") == 0)
 	 	return 19;
+
+	if(strcmp(p,":=") == 0)
+		throwError(1);
 
 	if(strcmp(p,"<") == 0)
 		return 21;
@@ -580,7 +611,6 @@ void throwError(int err)
 	switch(err)
 	{
 		case 1:
-			// wtf ...
 			perror("Error: Use = instead of :=\n");
 			break;
 		case 2:
@@ -599,7 +629,7 @@ void throwError(int err)
 			perror("Error: Incorrect symbol after procedure delaration.\n");
 			break;
 		case 7:
-			perror("Error: Statemetn expected\n");
+			perror("Error: Statement expected\n");
 			break;
 		case 8:
 			perror("Error: Incorrect symbol after statement part in block\n");
@@ -623,7 +653,7 @@ void throwError(int err)
 			perror("Error: Call must be folloed by an identifier\n");
 			break;
 		case 15:
-			perror("Error: Call of constant or variabl is meaningless\n");
+			perror("Error: Call of constant or variable is meaningless\n");
 			break;
 		case 16:
 			perror("Error: then expected\n");
@@ -660,30 +690,10 @@ void throwError(int err)
 			break;
 	}
 
-	return;
+	exit(1);
 }
 
-int findVar(symbol *head, char *name)
-{
-  symbol *temp = malloc(sizeof(symbol));
-  temp = head;
-
-  while(temp != NULL && strcmp(temp->name,name) != 0)
-  {
-	 temp = temp->next;
-  }
-
-  if(temp == NULL)
-  {
-	 // error the variable we are referring to in the arithmetic doesn't even exist.
-	 return -1;
-  }
-
-	// return memory address
-	return temp->addr;
-}
-
-symbol * findVal(symbol * head, char * name)
+symbol * findVar(symbol * head, char * name)
 {
 	// start after the head
 	symbol * temp = head->next;
