@@ -132,7 +132,8 @@ int main(int argc, char *argv[])
 			case(3):
 				// loads the value into a register from a stack location at offset M and level L
 				printf("lod %d %d %d ",IR.R, IR.L, IR.M);
-				IR.R = stack[base(IR.L, stack, BP) + IR.M];
+				registerFile[IR.R] = stack[base(IR.L, stack, BP) + IR.M];
+				//printf("\n\n\n\nSTACK VALUE %d\n", IR.R);
 				break;
 
 			case(4):
@@ -147,10 +148,10 @@ int main(int argc, char *argv[])
 				printf("cal 0 %d %d ", IR.L, IR.M);
 				stack[SP + 1] = 0;	// space return value
 				stack[SP + 2] = base(IR.L, stack, BP); 	// static link (SL)
-        stack[SP + 3] = BP;	// dynamic link (DL)
-	      stack[SP + 4] = PC;	 		// return address (RA)
-        BP = SP + 1;
-	      PC = IR.M;
+				stack[SP + 3] = BP;	// dynamic link (DL)
+				stack[SP + 4] = PC;	 		// return address (RA)
+				BP = SP + 1;
+				PC = IR.M;
 
 				break;
 
