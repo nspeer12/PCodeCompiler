@@ -13,6 +13,7 @@ ASSEMBLY=0
 VM=0
 HELP=0
 DEBUG=0
+TEST=0
 
 # default file
 file="inputs/input01.txt"
@@ -41,6 +42,9 @@ do
 		  --debug)
 		  DEBUG=1
 		  ;;
+		  --test)
+		  TEST=1
+		  ;;
 
 		  *)
 		  	# assume anything else is the input file
@@ -56,6 +60,16 @@ then
 	echo "Output Lex: $LEX"
 	echo "Output Assembly: $ASSEMBLY"
 	echo "Execute on VM: $VM"
+fi
+
+if [[ $TEST = "1" ]]
+then
+	echo "Test Cases"
+
+	for i in 01 02 03 04 05 06
+	do
+		bash compile.sh "inputs/input$i.txt" -l -a -v > "outputs/output$i.txt"
+	done
 fi
 
 if [ $HELP = "1" ]
@@ -102,3 +116,7 @@ then
 	./vm.o "tmp/instructions.a"
 	rm vm.o
 fi
+
+
+rm tmp/instructions.a
+rm tmp/lex.output
