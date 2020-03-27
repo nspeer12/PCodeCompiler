@@ -30,10 +30,9 @@ typedef struct instruction
 	int M;	// Modifier
 } instruction;
 
-#define MAX_CODE_SIZE 6969
+#define MAX_CODE_SIZE 99999
 
 int levelCount = 0;
-token * fetch(token * tok);
 
 // parser functions
 void parser(token * tok, symbol * head, instruction * code, int * cx);
@@ -65,8 +64,8 @@ int main(int argc, char ** argv)
 	char * filename = "tmp/lex.output";
 
 	// print argument
-	// int print = (argc > 1 && (strcmp(argv[1], "-a") == 0)) ? 1 : 0;
-	int print = 0;
+	int print = (argc > 1 && (strcmp(argv[1], "-a") == 0)) ? 1 : 0;
+	//int print = 0;
 	// store code in array
 	instruction code [MAX_CODE_SIZE];
 	// code index counter
@@ -79,6 +78,9 @@ int main(int argc, char ** argv)
 	// begin recursive descent parsing
 	parser(head, symbolTableHead, code, cx);
 
+	if (print)
+		printf("No errors, program is syntactically correct\n");
+		
 	printCode(code, cx, print);
 
 	return 0;
@@ -582,8 +584,12 @@ int isRelationalOperator(char * p)
 	// returns the operation code
 
 	// i have no clue what <> does, assuming for odd operation
-	if(strcmp(p,"<>") == 0 ||strcmp(p,"odd") == 0)
+	if(strcmp(p,"odd") == 0)
 	 	return 17;
+
+	// not equal to
+	if(strcmp(p,"<>") == 0)
+		return 20;
 
   	if(strcmp(p,"=") == 0)
 	 	return 19;

@@ -87,25 +87,25 @@ fi
 gcc lex.c -o lex.o
 ./lex.o $file
 
-# hardcode lex input for now
 if [ $LEX = "1" ]
 then
 	echo "Lexeme List"
 	cat tmp/lex.output
-	echo
 fi
 
 rm "lex.o"
 
 # compile parser
-# TODO: handle input arguments
 gcc parser.c -o parser.o
-./parser.o
+
 if [ $ASSEMBLY = "1" ]
 then
+	./parser.o -a
 	echo "Generated Assembly Code"
 	cat tmp/instructions.a
 	echo
+else
+	./parser.o
 fi
 
 rm parser.o
