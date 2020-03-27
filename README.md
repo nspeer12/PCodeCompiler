@@ -1,9 +1,14 @@
 # PCodeCompiler
 
+# Getting Started
+In order to run the compile script, you may need to grant it executable permissions
+`chmod +x compile.sh`
+
 ### How To Run
 run in default mode
-`./compile.sh`
+`./compile.sh` or `bash compile.sh`
 
+default mode runs the file input/input01.txt
 
 
 ## Usage
