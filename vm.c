@@ -435,11 +435,11 @@ void print_code(instruction * code, int codeLen, int * stack, int * registers, i
 				break;
 			case(13):
 				// set halt flag to 1, end of program
-				printf("%d\tadd\t%d\t%d\t%d\n", code[i].R, code[i].L, code[i].M);
+				printf("%d\tadd\t%d\t%d\t%d\n", i, code[i].R, code[i].L, code[i].M);
 				break;
 			case(14):
 				// set halt flag to 1, end of program
-				printf("%d\tsub\t%d\t%d\t%d\n", code[i].R, code[i].L, code[i].M);
+				printf("%d\tsub\t%d\t%d\t%d\n", i, code[i].R, code[i].L, code[i].M);
 				break;
 			default:
 				break;
