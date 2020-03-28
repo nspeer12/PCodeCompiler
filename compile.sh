@@ -117,7 +117,6 @@ then
 	./vm.o "tmp/instructions.a" -v
 	rm vm.o
 else
-	echo "here"
 	./vm.o "tmp/instructions.a"
 fi
 
