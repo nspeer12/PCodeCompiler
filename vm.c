@@ -32,7 +32,7 @@ void print_state(instruction IR, int * stack, int PC, int BP, int SP, int * regi
 int main(int argc, char *argv[])
 {
 
-	int print = (argc > 1 && (strcmp(argv[1], "-v") == 0)) ? 1 : 0;
+	int print = (argc > 2 && (strcmp(argv[2], "-v") == 0)) ? 1 : 0;
 
 	// Stack Pointer
 	// Points to the top of the stack.
@@ -119,13 +119,15 @@ int main(int argc, char *argv[])
 		{
 			case(1):
 				// loads a constant value
-				printf("lit %d 0 %d ", IR.R, IR.M);
+				if (print == 1)
+					printf("lit %d 0 %d ", IR.R, IR.M);
 				registerFile[IR.R] = IR.M;
 				break;
 
 			case(2):
 				// returns from a subroutine
-				printf("rtn 0 0 0 ");
+				if (print == 1)
+					printf("rtn 0 0 0 ");
 				SP = BP - 1;
 				BP = stack[SP + 3];
 				PC = stack[SP + 4];
@@ -133,21 +135,24 @@ int main(int argc, char *argv[])
 
 			case(3):
 				// loads the value into a register from a stack location at offset M and level L
-				printf("lod %d %d %d ",IR.R, IR.L, IR.M);
+				if (print == 1)
+					printf("lod %d %d %d ",IR.R, IR.L, IR.M);
 				registerFile[IR.R] = stack[base(IR.L, stack, BP) + IR.M];
 				//printf("\n\n\n\nSTACK VALUE %d\n", IR.R);
 				break;
 
 			case(4):
 				// store the value in the stack at offset M and level L
-				printf("sto %d %d %d ",IR.R, IR.L, IR.M);
+				if (print == 1)
+					printf("sto %d %d %d ",IR.R, IR.L, IR.M);
 				stack[base(IR.L, stack, BP) + IR.M] = registerFile[IR.R];
 				break;
 
 			case(5):
 				// call a procedure at index M
 				// generates a new activation record
-				printf("cal 0 %d %d ", IR.L, IR.M);
+				if (print == 1)
+					printf("cal 0 %d %d ", IR.L, IR.M);
 				stack[SP + 1] = 0;	// space return value
 				stack[SP + 2] = base(IR.L, stack, BP); 	// static link (SL)
 				stack[SP + 3] = BP;	// dynamic link (DL)
@@ -160,39 +165,46 @@ int main(int argc, char *argv[])
 			case(6):
 				// allocate M locals, increment stack pointer by M
 				// first four values are functional value, static link, dyn. link, and return addr.
-				printf("inc 0 0 %d ",IR.M);
+				if (print == 1)
+					printf("inc 0 0 %d ",IR.M);
 				SP = SP + IR.M;
 				break;
 
 			case(7):
 				// jump to instruction M
-				printf("jmp 0 0 %d ", IR.M);
+				if (print == 1)
+					printf("jmp 0 0 %d ", IR.M);
 				PC = IR.M;
 				break;
 
 			case(8):
 				// jump to instruction M if R == 0
-				printf("jpc %d, 0, %d ", IR.R, IR.M);
+				if (print == 1)
+					printf("jpc %d, 0, %d ", IR.R, IR.M);
 				if (registerFile[IR.R] == 0)
 					PC = IR.M;
 				break;
 
 			case(9):
 				// write a register to the screen
-				printf("sio %d, 0, 1 ", IR.R);
+				if (print == 1)
+					printf("sio %d, 0, 1 ", IR.R);
+
 				printf("%d", registerFile[IR.R]);
 				break;
 
 			case(10):
 				// read input from the user and store it in the register
-				printf("sio %d, 0, 2 ", IR.R);
+				if (print == 1)
+					printf("sio %d, 0, 2 ", IR.R);
 				int reg = IR.R;
 				scanf("%d", &registerFile[reg]);
 				break;
 
 			case(11):
 				// set halt flag to 1, end of program
-				printf("sio 0, 0, 3 ");
+				if (print == 1)
+					printf("sio 0, 0, 3 ");
 				halt = 1;
 				break;
 
