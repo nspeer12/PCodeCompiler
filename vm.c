@@ -31,9 +31,8 @@ void print_state(instruction IR, int * stack, int PC, int BP, int SP, int * regi
 
 int main(int argc, char *argv[])
 {
-
 	int print = (argc > 2 && (strcmp(argv[2], "-v") == 0)) ? 1 : 0;
-
+	
 	// Stack Pointer
 	// Points to the top of the stack.
 	int SP = 0;
@@ -90,7 +89,10 @@ int main(int argc, char *argv[])
 
 		// function that retreives data from the input file
 		code = get_instructions(fp, numLines);
-		printf("NUM LINES %d\n", numLines);
+
+		if (print == 1)
+			printf("NUM LINES %d\n", numLines);
+
 		fclose(fp);
 	}
 	else
@@ -102,7 +104,8 @@ int main(int argc, char *argv[])
 
 	// Putting numLines-1 because it has 17 lines but it only goes up to 16 in the output.
 	// The 17th line is empty.
-	print_code(code, numLines-1, stack, registerFile, PC, BP, SP);
+	if (print)
+		print_code(code, numLines-1, stack, registerFile, PC, BP, SP);
 
 	// Fetching and executing functions happen
 	int halt = 0;
@@ -110,7 +113,9 @@ int main(int argc, char *argv[])
 	while(!halt)
 	{
 		IR = code[PC];
-		printf("%d ", PC);
+
+		if (print == 1)
+			printf("%d ", PC);
 		PC = PC + 1;
 		// printf("\nOP: %d\tR %d\tL %d\tM %d\n", IR.OP, IR.R, IR.L, IR.M);
 
@@ -283,7 +288,8 @@ int main(int argc, char *argv[])
 		if (IR.OP == 5)
 			activationRecord[SP] = 1;
 
-		print_state(IR, stack, PC, BP, SP, registerFile, activationRecord);
+		if (print)
+			print_state(IR, stack, PC, BP, SP, registerFile, activationRecord);
 
 		if (PC > numLines)
 			halt=1;
