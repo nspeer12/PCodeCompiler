@@ -337,7 +337,7 @@ token * statement(token * tok, symbol * head, instruction * code, int * cx, int 
 		// get the variable name
 		tok = fetch(tok);
 
-		printf("TOK TYPE %s", tok->type);
+		printf("TOK TYPE %d", tok->type);
 
 		// OP in to register is 10
 		emit(code, cx, 10, reg, 0, reg);
@@ -352,20 +352,33 @@ token * statement(token * tok, symbol * head, instruction * code, int * cx, int 
 			// variable does not exist
 			throwError(11);
 		}
-		else
+
+		emit(code, cx, reg, 4, 0, tmp->addr);
+
+		tok = fetch(tok);
+		if (tok->type != semicolonsym)
 		{
-			// store input to variable
-			emit(code, cx, reg, 4, 0, tmp->addr);
+			throwError(5);
+			return NULL;
 		}
 
 	}
 	else if (tok->type == writesym)
 	{
 		// write
+		tok = fetch(tok);
+		symbol * tmp = findVar(head, tok->value);
 		emit(code, cx, reg, 3, 0, tmp->addr);
 		emit(code, cx, 9, reg, 0, reg);
 
+		tok = fetch(tok);
+		if (tok->type != semicolonsym)
+		{
+			throwError(5);
+			return NULL;
+		}
 	}
+
 
 	return tok;
 }
