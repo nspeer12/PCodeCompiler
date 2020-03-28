@@ -80,7 +80,7 @@ int main(int argc, char ** argv)
 
 	if (print)
 		printf("No errors, program is syntactically correct\n");
-		
+
 	printCode(code, cx, print);
 
 	return 0;
@@ -335,13 +335,17 @@ token * statement(token * tok, symbol * head, instruction * code, int * cx, int 
 		// read
 
 		// get the variable name
-		//tok = fetch(tok);
-		//printf("TOK TYPE %s", tok->type);
+		tok = fetch(tok);
+
+		printf("TOK TYPE %s", tok->type);
+
 		// OP in to register is 10
-		//emit(code, cx, 10, reg, 0, reg);
+		emit(code, cx, 10, reg, 0, reg);
+
 		// store in variable
 
-		/* find variable address and store it in
+		/* find variable address and store it in */
+
 		symbol * tmp = findVar(head, tok->value);
 		if (tmp == NULL)
 		{
@@ -353,11 +357,14 @@ token * statement(token * tok, symbol * head, instruction * code, int * cx, int 
 			// store input to variable
 			emit(code, cx, reg, 4, 0, tmp->addr);
 		}
-		*/
+
 	}
 	else if (tok->type == writesym)
 	{
 		// write
+		emit(code, cx, reg, 3, 0, tmp->addr);
+		emit(code, cx, 9, reg, 0, reg);
+
 	}
 
 	return tok;
