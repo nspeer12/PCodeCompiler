@@ -110,11 +110,15 @@ fi
 
 rm parser.o
 
+gcc "vm.c" -o vm.o
+
 if [ $VM = "1" ]
 then
-	gcc "vm.c" -o vm.o
 	./vm.o "tmp/instructions.a" -v
 	rm vm.o
+else
+	echo "here"
+	./vm.o "tmp/instructions.a"
 fi
 
 

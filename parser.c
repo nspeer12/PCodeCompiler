@@ -353,7 +353,7 @@ token * statement(token * tok, symbol * head, instruction * code, int * cx, int 
 			throwError(11);
 		}
 
-		emit(code, cx, reg, 4, 0, tmp->addr);
+		emit(code, cx,4, reg, 0, tmp->addr);
 
 		tok = fetch(tok);
 		if (tok->type != semicolonsym)
@@ -368,7 +368,7 @@ token * statement(token * tok, symbol * head, instruction * code, int * cx, int 
 		// write
 		tok = fetch(tok);
 		symbol * tmp = findVar(head, tok->value);
-		emit(code, cx, reg, 3, 0, tmp->addr);
+		emit(code, cx, 3, reg, 0, tmp->addr);
 		emit(code, cx, 9, reg, 0, reg);
 
 		tok = fetch(tok);
@@ -378,7 +378,6 @@ token * statement(token * tok, symbol * head, instruction * code, int * cx, int 
 			return NULL;
 		}
 	}
-
 
 	return tok;
 }
