@@ -1,3 +1,7 @@
+// Written By:
+// Stephen Speer
+// Danish Siddiqui
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -200,6 +204,46 @@ token * block(token * tok, symbol * head, instruction * code, int * cx)
 			emit(code, cx, 6, 0, 0, 1);
 
 		} while(tok->type == commasym);
+
+		while(tok->type == procsym)
+		{
+			char * name = malloc(sizeof(char)*15);
+			double value = 0;
+
+			tok = fetch(tok);
+			if (tok->type != identsym)
+			{
+				//printf("identsym error in block/procsym\n");
+				return NULL;
+			}
+			else
+			{
+				tok = fetch(tok);
+			}
+
+			strcpy(name,tok->value);
+
+			// insert into symbol table.
+			insertSym(head, 3, name, value, setNewLevel(levelCount,levels), -1);
+
+			// increase level count after adding the procedure.
+			levelCount++;
+
+			tok = fetch(tok);
+
+			if (tok->type != semicolonsym)
+			{
+				//printf("semicolonsym error in block/procsym\n");
+				return NULL;
+			}
+			else
+			{
+				tok = fetch(tok);
+			}
+
+			tok = fetch(tok);
+
+		}
 
 		if (tok->type != semicolonsym)
 		{
