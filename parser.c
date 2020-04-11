@@ -325,6 +325,7 @@ token * block(int l, token * tok, symbol * head, instruction * code, int * cx)
 
 	// allocate stack memory
 	tok = statement(l,tok, head, code, cx, reg);
+	// emit(code, cx, 2, 0, 0, 0);
 	return tok;
 }
 
