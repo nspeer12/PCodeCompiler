@@ -35,28 +35,31 @@ typedef struct instruction
 } instruction;
 
 #define MAX_CODE_SIZE 99999
+token * lastToken = NULL;
 
-int levelCount = 0;
-
+int masterLevels = 0;
+int stackidx = 0;
 // parser functions
 void parser(token * tok, symbol * head, instruction * code, int * cx);
-token * block(token * tok, symbol * head, instruction * code, int * cx);
+token * block(int l, token * tok, symbol * head, instruction * code, int * cx);
 token * program(token * tok, symbol * head, instruction * code, int * cx);
-token * statement(token * tok, symbol * head, instruction * code, int * cx, int reg);
-token * expression(token * tok, symbol * head, instruction * code, int * cx, int reg);
-token * condition(token * tok, symbol * head, instruction * code, int * cx, int reg);
-token * factor(token * tok, symbol * head, instruction * code, int * cx, int reg);
-token * term(token * tok,symbol * head, instruction * code, int * cx, int reg);
+token * statement(int l, token * tok, symbol * head, instruction * code, int * cx, int reg);
+token * expression(int l, token * tok, symbol * head, instruction * code, int * cx, int reg);
+token * condition(int l, token * tok, symbol * head, instruction * code, int * cx, int reg);
+token * factor(int l, token * tok, symbol * head, instruction * code, int * cx, int reg);
+token * term(int l, token * tok,symbol * head, instruction * code, int * cx, int reg);
 
 // symbol table
 int isRelationalOperator(char *p);
 void throwError(int err);
 symbol * insertSym(symbol * sym, int kind, char * name, double val, int level, int addr);
 symbol * createNewSymbolTable();
-int setNewLevel(int level,symbolTableLevels * levels);
-int getNewAddress(int level,symbolTableLevels * levels);
+int setNewLevel(int level,symbolTableLevels * container);
+int getNewAddress(int level,symbolTableLevels * container);
 void printSymbolTable(symbol * head);
 symbol * findVar(symbol * head, char * name);
+int tableSize(symbol * head);
+symbol * findByIndex(symbol * head, int index);
 
 // code generation
 void printCode(instruction * code, int * cx, int print);
@@ -100,8 +103,9 @@ token * program(token * tok, symbol * head, instruction * code, int * cx)
 {
 	// get the first token after head
 	tok = fetch(tok);
+	printf("New Token: %s\n",tok->value);
 
-	tok = block(tok, head, code, cx);
+	tok = block(0, tok, head, code, cx);
 
 	if (tok->type != periodsym)
 	{
@@ -112,155 +116,219 @@ token * program(token * tok, symbol * head, instruction * code, int * cx)
 	return tok;
 }
 
-token * block(token * tok, symbol * head, instruction * code, int * cx)
+token * block(int l, token * tok, symbol * head, instruction * code, int * cx)
 {
-  symbolTableLevels * levels = malloc(sizeof(symbolTableLevels));
-
-  levels->addressCount = 3;
-  levels->next = NULL;
+	symbol * symbolTable;
 
 	// allocate space in the stack
-	int stackidx = 4;
+	stackidx = 4;
+	int masterDoCount = 0;
 
-	if (tok->type == constsym)
+	int tx0, cx0;
+	tx0 = tableSize(head);
+
+	if(tx0 < 1)
 	{
-		char * name = malloc(sizeof(char)*15);
-		double value = 0;
+		printf("**********************************Table Size: %d\n",tx0);
+		symbol * new = malloc(sizeof(symbol));
+		new->kind = -1;
+		strcpy(new->name,"new");
+		new->val = -1;
+		new->level = -1;
+		new->addr = *cx;
+		new->next = NULL;
+		head->next = new;
 
-		do
+	}
+	else
+	{
+		symbolTable  = findByIndex(head,tx0);
+		symbolTable->addr = *cx;
+	}
+
+	// emit(code, cx, 7, 0, 0, 0);
+
+	do{
+		symbolTableLevels * container = malloc(sizeof(symbolTableLevels));
+
+		container->addressCount = 3;
+		container->next = NULL;
+
+		masterDoCount++;
+		printf("Master do Count: %d \n",masterDoCount);
+		printf("Starting Token: %s\n",tok->value);
+		if (tok->type == constsym)
 		{
+			char * name = malloc(sizeof(char)*15);
+			double value = 0;
+
+			do
+			{
+				tok = fetch(tok);
+				printf("New Token: %s\n",tok->value);
+
+				if (tok->type != identsym)
+				{
+					throwError(4);
+					return NULL;
+				}
+				else
+				{
+					// set the name variable.
+					strcpy(name,tok->value);
+					tok = fetch(tok);
+					printf("New Token: %s\n",tok->value);
+				}
+
+				if (tok->type != eqlsym)
+				{
+					throwError(3);
+					return NULL;
+				}
+				else
+				{
+					tok = fetch(tok);
+					printf("New Token: %s\n",tok->value);
+				}
+
+				if (tok->type != numbersym)
+				{
+					throwError(2);
+					return NULL;
+				}
+				else
+				{
+					value = atof(tok->value);
+					tok = fetch(tok);
+					printf("New Token: %s\n",tok->value);
+				}
+
+				// add constant to table
+				// -1 for null addresses.
+				insertSym(head, 1, name, value, l, *cx);
+
+			} while(tok->type == commasym);
+
+			if (tok->type != semicolonsym)
+			{
+				printf("For token: %s\n",tok->name);
+				throwError(5);
+				return NULL;
+			}
+
 			tok = fetch(tok);
+			printf("New Token: %s\n",tok->value);
+		}
+
+		// Prof uses intsym and varsym interchangably in the sample symbol outputs.
+		if (tok->type == varsym)
+		{
+			char * name = malloc(sizeof(char)*15);
+			double value = 0;
+
+			do
+			{
+
+				tok = fetch(tok);
+				printf("New Token: %s\n",tok->value);
+
+				if (tok->type != identsym)
+				{
+					//printf("identsym error in block/insym\n");
+					return NULL;
+				}
+
+				strcpy(name,tok->value);
+
+				// insert variable into symbol table.
+				printf("In varsym pre insertion. \n");
+				setNewLevel(l,container);
+				insertSym(head, 2, name, value, l, getNewAddress(l,container));
+				printf("In varsym post insertion. \n");
+
+				// allocate stack memory
+				tok = fetch(tok);
+				printf("New Token: %s\n",tok->value);
+
+				printf("emit(code,%d,6,0,0,1)\n",*cx);
+				emit(code, cx, 6, 0, 0, 1);
+
+
+			} while(tok->type == commasym);
+
+			if (tok->type != semicolonsym)
+			{
+				throwError(10);
+				return NULL;
+			}
+
+			tok = fetch(tok);
+			printf("New Token: %s\n",tok->value);
+		}
+
+		while(tok->type == procsym)
+		{
+			printf("Procsym has been found.\n");
+			char * name = malloc(sizeof(char)*15);
+			double value = 0;
+
+			tok = fetch(tok);
+			printf("New Token: %s\n",tok->value);
 
 			if (tok->type != identsym)
 			{
 				throwError(4);
 				return NULL;
 			}
-			else
-			{
-				// set the name variable.
-				strcpy(name,tok->value);
-				tok = fetch(tok);
-			}
-
-			if (tok->type != eqlsym)
-			{
-				throwError(3);
-				return NULL;
-			}
-			else
-			{
-				tok = fetch(tok);
-			}
-
-			if (tok->type != numbersym)
-			{
-				throwError(2);
-				return NULL;
-			}
-			else
-			{
-				value = atof(tok->value);
-				tok = fetch(tok);
-			}
-
-			// add constant to table
-			// -1 for null addresses.
-			insertSym(head, 1, name, value, -1, -1);
-
-		} while(tok->type == commasym);
-
-		if (tok->type != semicolonsym)
-		{
-			throwError(5);
-			return NULL;
-		}
-
-		tok = fetch(tok);
-	}
-
-	// Prof uses intsym and varsym interchangably in the sample symbol outputs.
-	if (tok->type == varsym)
-	{
-		char * name = malloc(sizeof(char)*15);
-		double value = 0;
-
-		do
-		{
-			tok = fetch(tok);
-			if (tok->type != identsym)
-			{
-				//printf("identsym error in block/insym\n");
-				return NULL;
-			}
 
 			strcpy(name,tok->value);
-
-			// insert variable into symbol table.
-			insertSym(head, 2, name, value, setNewLevel(levelCount,levels), getNewAddress(levelCount,levels));
-			tok = fetch(tok);
-
-			// allocate stack memory
-			emit(code, cx, 6, 0, 0, 1);
-
-		} while(tok->type == commasym);
-
-		while(tok->type == procsym)
-		{
-			char * name = malloc(sizeof(char)*15);
-			double value = 0;
-
-			tok = fetch(tok);
-			if (tok->type != identsym)
-			{
-				//printf("identsym error in block/procsym\n");
-				return NULL;
-			}
-			else
-			{
-				tok = fetch(tok);
-			}
-
-			strcpy(name,tok->value);
-
 			// insert into symbol table.
-			insertSym(head, 3, name, value, setNewLevel(levelCount,levels), -1);
-
-			// increase level count after adding the procedure.
-			levelCount++;
+			insertSym(head, 3, name, value, setNewLevel(l,container), *cx);
 
 			tok = fetch(tok);
+			printf("New Token: %s\n",tok->value);
 
 			if (tok->type != semicolonsym)
 			{
-				//printf("semicolonsym error in block/procsym\n");
+				printf("For token: %s\n",tok->name);
+				throwError(5);
 				return NULL;
 			}
 			else
 			{
 				tok = fetch(tok);
+				printf("New Token: %s\n",tok->value);
 			}
 
-			tok = fetch(tok);
+			// make a recursive call to this function. Increase lev.
+			printf("Making recursive call to level: %d\n",l+1);
+			masterLevels++;
+			tok = block(l+1, tok, head, code, cx);
+			printf("Returned from recursive call level: %d\n",l);
 
+			if (tok->type != semicolonsym)
+			{
+				printf("For token: %s\n",tok->value);
+				throwError(5);
+			}
+			else
+			{
+				tok = fetch(tok);
+				printf("New Token: %s\n",tok->value);
+			}
 		}
 
-		if (tok->type != semicolonsym)
-		{
-			throwError(10);
-			return NULL;
-		}
-
-		tok = fetch(tok);
-	}
+	}while((tok->type == constsym) || (tok->type == varsym) || (tok->type == procsym));
 
 	int reg = 0;
-	tok = statement(tok, head, code, cx, reg);
+	code[symbolTable->addr].M = *cx;
 
+	// allocate stack memory
+	tok = statement(l,tok, head, code, cx, reg);
 	return tok;
 }
 
-token * statement(token * tok, symbol * head, instruction * code, int * cx, int reg)
+token * statement(int l, token * tok, symbol * head, instruction * code, int * cx, int reg)
 {
 	symbol * var;
 
@@ -277,28 +345,73 @@ token * statement(token * tok, symbol * head, instruction * code, int * cx, int 
 		 }
 
 		tok = fetch(tok);
+		printf("New Token: %s\n",tok->value);
 
 		if (tok->type != becomessym)
 		{
 			// printf("becomessym error in statement/indentsym: %s\n", tok->name);
+			throwError(11);
 			return NULL;
 		}
 
 		tok = fetch(tok);
-		tok = expression(tok, head, code, cx, reg);
+		printf("New Token: %s\n",tok->value);
+		tok = expression(l,tok, head, code, cx, reg);
 
 		// store the register into the stack
-		emit(code, cx, 4, reg, 0, var->addr);
+		printf("emit(code,%d,4,%d,%d,%d)\n",*cx,reg,var->level,var->addr);
+		emit(code, cx, 4, reg, var->level, var->addr);
+	}
+	else if (tok->type == callsym)
+	{
+		// check if this variable exists in symbol table.
+		tok = fetch(tok);
+		printf("New Token: %s\n",tok->value);
+		var = findVar(head,tok->value);
+
+		if (tok->type != identsym) {
+      throwError(14); //call must be followed by an identifier
+			return NULL;
+    }
+		else
+		{
+			// check if this exists in the symbol table.
+			var = findVar(head,tok->value);
+
+			// check for valid addres
+			if(var == NULL)
+			{
+				throwError(11);
+				return NULL;
+			}
+			else if(var->kind == 3)
+			{
+				// This means it is a procsym.
+				// put the emit statement here.
+				printf("emit(code,%d,5,%d,0,%d)\n",*cx,reg,var->addr);
+				emit(code, cx, 5, reg, l-(var->level), var->addr);
+			}
+			else
+			{
+				throwError(15);
+				return NULL;
+			}
+
+			tok = fetch(tok);
+			printf("New Token: %s\n",tok->value);
+		}
 	}
 	else if (tok->type == beginsym)
 	{
 		tok = fetch(tok);
-		tok = statement(tok, head, code, cx, reg);
+		printf("New Token: %s\n",tok->value);
+		tok = statement(l,tok, head, code, cx, reg);
 
 		while(tok->type == semicolonsym)
 		{
 			tok = fetch(tok);
-			tok = statement(tok, head, code, cx, reg);
+			printf("New Token: %s\n",tok->value);
+			tok = statement(l,tok, head, code, cx, reg);
 		}
 
 		if (tok->type != endsym)
@@ -307,38 +420,53 @@ token * statement(token * tok, symbol * head, instruction * code, int * cx, int 
 			return NULL;
 		}
 
-		// decrement the level integer
-		if(levelCount > 0)
-		{
-			levelCount--;
-		}
-
 		tok = fetch(tok);
+		printf("New Token: %s\n",tok->value);
 	}
 	else if (tok->type == ifsym)
 	{
 		tok = fetch(tok);
-		tok = condition(tok, head, code, cx, reg);
+		printf("New Token: %s\n",tok->value);
+		tok = condition(l, tok, head, code, cx, reg);
 
 		if (tok->type != thensym)
 		{
-			// printf("thensym error in statament/ifsym\n");
+			// printf("thensym error in statement/ifsym\n");
+			throwError(16);
 			return NULL;
 		}
 		else
 		{
 			tok = fetch(tok);
+			printf("New Token: %s\n",tok->value);
 		}
 
 		// jump for statement
 		int cxtmp = *cx;
 
 		// OP JPC == 8
+		printf("emit(code,%d,8,%d,0,0)\n",*cx,reg);
 		emit(code, cx, 8, reg, 0, 0);
-		tok = statement(tok, head, code, cx, reg);
+		tok = statement(l,tok, head, code, cx, reg);
+
+		if(tok->type == elsesym)
+		{
+			tok = fetch(tok);
+			printf("New Token: %s\n",tok->value);
+
+			code[cxtmp].M = *cx + 1;
+			cxtmp = *cx ;
+
+			printf("emit(code,%d,7,%d,0,0)\n",*cx,reg);
+			emit(code, cx, 7, reg, 0, 0);
+			tok = statement(l,tok, head, code, cx, reg);
+
+		}
 
 		// change the jump to the line fo code for the statemnet
 		code[cxtmp].M = *cx;
+
+
 	}
 	else if (tok->type == whilesym)
 	{
@@ -346,11 +474,13 @@ token * statement(token * tok, symbol * head, instruction * code, int * cx, int 
 		int cx1 = *cx;
 
 		tok = fetch(tok);
-		tok = condition(tok, head, code, cx, reg);
+		printf("New Token: %s\n",tok->value);
+		tok = condition(l, tok, head, code, cx, reg);
 
 		// to control jump
 		int cx2 = *cx;
 		// jpc to break loop
+		printf("emit(code,%d,8,%d,0,0)\n",*cx,reg);
 		emit(code, cx, 8, reg, 0, 0);
 
 		if (tok->type != dosym)
@@ -361,12 +491,14 @@ token * statement(token * tok, symbol * head, instruction * code, int * cx, int 
 		else
 		{
 			tok = fetch(tok);
+			printf("New Token: %s\n",tok->value);
 		}
 
 
-		tok = statement(tok, head, code, cx, reg);
+		tok = statement(l,tok, head, code, cx, reg);
 
 		// jump unconditionally to beggining of loop
+		printf("emit(code,%d,7,0,0,%d)\n",*cx,cx1);
 		emit(code, cx, 7, 0, 0, cx1);
 
 		// change cx2 so we can break loop
@@ -380,10 +512,12 @@ token * statement(token * tok, symbol * head, instruction * code, int * cx, int 
 
 		// get the variable name
 		tok = fetch(tok);
+		printf("New Token: %s\n",tok->value);
 
 		printf("TOK TYPE %d", tok->type);
 
 		// OP in to register is 10
+		printf("emit(code,%d,10,%d,0,%d)\n",*cx,reg,reg);
 		emit(code, cx, 10, reg, 0, reg);
 
 		// store in variable
@@ -397,11 +531,14 @@ token * statement(token * tok, symbol * head, instruction * code, int * cx, int 
 			throwError(11);
 		}
 
-		emit(code, cx,4, reg, 0, tmp->addr);
+		printf("emit(code,%d,4,%d,%d,%d)\n",*cx,reg,tmp->level,tmp->addr);
+		emit(code, cx,4, reg, tmp->level, tmp->addr);
 
 		tok = fetch(tok);
+		printf("New Token: %s\n",tok->value);
 		if (tok->type != semicolonsym)
 		{
+			printf("For token: %s\n",tok->name);
 			throwError(5);
 			return NULL;
 		}
@@ -411,13 +548,21 @@ token * statement(token * tok, symbol * head, instruction * code, int * cx, int 
 	{
 		// write
 		tok = fetch(tok);
+		printf("New Token: %s\n",tok->value);
+
 		symbol * tmp = findVar(head, tok->value);
+
+		printf("emit(code,%d,3,%d,0,%d)\n",*cx,reg,tmp->addr);
 		emit(code, cx, 3, reg, 0, tmp->addr);
+
+		printf("emit(code,%d,9,%d,0,%d)\n",*cx,reg,tmp->addr);
 		emit(code, cx, 9, reg, 0, reg);
 
 		tok = fetch(tok);
+		printf("New Token: %s\n",tok->value);
 		if (tok->type != semicolonsym)
 		{
+			printf("For token: %s\n",tok->name);
 			throwError(5);
 			return NULL;
 		}
@@ -426,17 +571,18 @@ token * statement(token * tok, symbol * head, instruction * code, int * cx, int 
 	return tok;
 }
 
-token * condition(token * tok, symbol * head, instruction * code, int * cx, int reg)
+token * condition(int l, token * tok, symbol * head, instruction * code, int * cx, int reg)
 {
 
 	if (tok->type == oddsym)
 	{
 		tok = fetch(tok);
-		tok = expression(tok, head, code, cx, reg);
+		printf("New Token: %s\n",tok->value);
+		tok = expression(l,tok, head, code, cx, reg);
 	}
 	else
 	{
-		tok = expression(tok, head, code, cx, reg);
+		tok = expression(l,tok, head, code, cx, reg);
 
 		// store relation operator
 		int rel = isRelationalOperator(tok->value);
@@ -448,7 +594,10 @@ token * condition(token * tok, symbol * head, instruction * code, int * cx, int 
 		else
 		{
 			tok = fetch(tok);
-			tok = expression(tok, head, code, cx, reg+1);
+			printf("New Token: %s\n",tok->value);
+			tok = expression(l,tok, head, code, cx, reg+1);
+
+			printf("emit(code,%d,%d,%d,%d,%d)\n",*cx,rel,reg,reg,reg+1);
 			emit(code, cx, rel, reg, reg, reg+1);
 		}
 	}
@@ -456,7 +605,7 @@ token * condition(token * tok, symbol * head, instruction * code, int * cx, int 
 	return tok;
 }
 
-token * expression(token * tok, symbol * head, instruction * code, int * cx, int reg)
+token * expression(int l, token * tok, symbol * head, instruction * code, int * cx, int reg)
 {
 	token * addop;
 
@@ -464,19 +613,21 @@ token * expression(token * tok, symbol * head, instruction * code, int * cx, int
 	{
 		addop = tok;
 		tok = fetch(tok);
-		tok = term(tok, head, code, cx, reg);
+		printf("New Token: %s\n",tok->value);
+		tok = term(l,tok, head, code, cx, reg);
 
 		// negation
 		if (addop->type == minussym)
 		{
 			// emit (OP, 0, OPR_NEG)
 			// OP OPR_NEG = 12
+			printf("emit(code,%d,12,%d,0,%d)\n",*cx,reg,reg);
 			emit(code, cx, 12, reg, 0, reg);
 		}
 	}
 	else
 	{
-		tok = term(tok, head, code, cx, reg);
+		tok = term(l,tok, head, code, cx, reg);
 	}
 
 	while(tok->type == plussym || tok->type == minussym)
@@ -484,18 +635,21 @@ token * expression(token * tok, symbol * head, instruction * code, int * cx, int
 		addop = tok;
 
 		tok = fetch(tok);
+		printf("New Token: %s\n",tok->value);
 		// load the next value in at the second index
-		tok = term(tok, head, code, cx, reg+1);
+		tok = term(l,tok, head, code, cx, reg+1);
 
 		if (addop->type == plussym)
 		{
 			// OP Add = 13
 			// add two numbers
+			printf("emit(code,%d,13,%d,%d,%d)\n",*cx,reg,reg,reg+1);
 			emit(code, cx, 13, reg, reg, reg+1);
 		}
 		else if (addop->type == minussym)
 		{
 			// OP 14 is subtraction
+			printf("emit(code,%d,14,%d,%d,%d)\n",*cx,reg,reg,reg+1);
 			emit(code, cx, 14, reg, reg, reg+1);
 		}
 	}
@@ -503,37 +657,40 @@ token * expression(token * tok, symbol * head, instruction * code, int * cx, int
 	return tok;
 }
 
-token * term(token * tok,symbol * head, instruction * code, int * cx, int reg)
+token * term(int l,token * tok,symbol * head, instruction * code, int * cx, int reg)
 {
 	token * mulop;
 
-	tok = factor(tok, head, code, cx, reg);
+	tok = factor(l,tok, head, code, cx, reg);
 
 	while(tok->type == multsym || tok->type == slashsym)
 	{
 		mulop = tok;
 
 		tok = fetch(tok);
-		tok = factor(tok, head, code, cx, reg+1);
+		printf("New Token: %s\n",tok->value);
+		tok = factor(l,tok, head, code, cx, reg+1);
 
 		// multiplication
 		if (mulop->type == multsym)
 		{
 			// OP Multiply = 15
-			emit(code, cx, 15, reg, reg, reg+1);
+			printf("emit(code,%d,15,%d,0,%d)\n",*cx,reg,reg+1);
+			emit(code, cx, 15, reg, 0, reg+1);
 		}
 		// division
 		else
 		{
 			// OP Division = 16
-			emit(code, cx, 16, reg, reg, reg+1);
+			printf("emit(code,%d,16,%d,0,%d)\n",*cx,reg,reg+1);
+			emit(code, cx, 16, reg, 0, reg+1);
 		}
 	}
 
   return tok;
 }
 
-token * factor(token * tok, symbol * head, instruction * code, int * cx, int reg)
+token * factor(int l, token * tok, symbol * head, instruction * code, int * cx, int reg)
 {
 
 	if (tok->type == identsym)
@@ -549,26 +706,32 @@ token * factor(token * tok, symbol * head, instruction * code, int * cx, int reg
 		}
 		else if (tmp->kind == 1) // constant
 		{
+			printf("emit(code,%d,1,%d,0,%f)\n",*cx,reg,tmp->val);
 			emit(code, cx, 1, reg, 0, tmp->val);
 		}
 		else if (tmp->kind == 2) // variable
 		{
 			// LOD from stack into register
-			emit(code, cx, 3, reg, 0, tmp->addr);
+			printf("emit(code,%d,3,%d,%d,%d)\n",*cx,reg,tmp->level,tmp->addr);
+			emit(code, cx, 3, reg, tmp->level, tmp->addr);
 		}
 
 		tok = fetch(tok);
+		printf("New Token: %s\n",tok->value);
 	}
 	else if (tok->type == numbersym)
 	{
 		// PUT NUMBER INTO REGISTER USING LIT
+		printf("emit(code,%d,1,%d,0,%d)\n",*cx,reg,atoi(tok->value));
 		emit(code, cx, 1, reg, 0, atoi(tok->value));
 		tok = fetch(tok);
+		printf("New Token: %s\n",tok->value);
 	}
 	else if (tok->type == lparentsym)
 	{
 		tok = fetch(tok);
-		tok = expression(tok, head, code, cx, reg);
+		printf("New Token: %s\n",tok->value);
+		tok = expression(l, tok, head, code, cx, reg);
 		if (tok->type != rparentsym)
 		{
 			throwError(22);
@@ -577,6 +740,7 @@ token * factor(token * tok, symbol * head, instruction * code, int * cx, int reg
 		else
 		{
 			tok = fetch(tok);
+			printf("New Token: %s\n",tok->value);
 		}
 	}
 	else
@@ -622,15 +786,14 @@ symbol * insertSym(symbol * sym, int kind, char * name, double val, int level, i
 		tmp->level = level;
 
 
-		// allow for custom insertions into symbol table
-		if (addr < 0)
+		if(kind == 2)
 		{
-			// use counter variable
-			tmp->addr = addr;
+			tmp->addr = stackidx;
+			stackidx++;
 		}
-		else
+		else if(kind == 3)
 		{
-			tmp->addr = i;
+			tmp->addr = addr;
 		}
 
 		tmp->next = NULL;
@@ -761,7 +924,31 @@ void throwError(int err)
 
 	exit(1);
 }
+int tableSize(symbol * head)
+{
+	symbol * temp = head->next;
+	int count = 0;
 
+	while(temp!=NULL)
+	{
+		temp = temp->next;
+		count++;
+	}
+
+	return count;
+}
+symbol * findByIndex(symbol * head, int index)
+{
+	symbol * temp = head;
+
+	while(index>0)
+	{
+		temp = temp->next;
+		index--;
+	}
+
+	return temp;
+}
 symbol * findVar(symbol * head, char * name)
 {
 	// start after the head
@@ -775,7 +962,7 @@ symbol * findVar(symbol * head, char * name)
 	if(temp == NULL)
 	{
 	  // error the variable we are referring to in the arithmetic doesn't even exist.
-	  printf("variable was not found");
+	  printf("VARIABLE WAS NOT FOUND!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n\n");
 	  return NULL;
 	}
 
@@ -783,17 +970,18 @@ symbol * findVar(symbol * head, char * name)
 	return temp;
 }
 
-int setNewLevel(int level, symbolTableLevels * levels)
+int setNewLevel(int level, symbolTableLevels * container)
 {
   // iterate to last level.
-  symbolTableLevels * t = levels;
+	printf("Physically Setting : Level: %d\n", level);
+  symbolTableLevels * t = container;
   int i;
 
   for(i = 0; i < level; i++)
   {
 	 if(t->next == NULL)
 	 {
-		// if no further levels exits, create a level and add it.
+		// if no further container exits, create a level and add it.
 		symbolTableLevels * new = malloc(sizeof(symbolTableLevels));
 
 		new->addressCount = 3;
@@ -803,13 +991,14 @@ int setNewLevel(int level, symbolTableLevels * levels)
 
 	 t = t->next;
   }
+	printf("New Level Set. ");
   return level;
 }
 
-int getNewAddress(int level,symbolTableLevels * levels)
+int getNewAddress(int level,symbolTableLevels * container)
 {
   // iterate to last level.
-  symbolTableLevels * t = levels;
+  symbolTableLevels * t = container;
   int i;
 
   for(i = 0; i < level; i++)
@@ -817,6 +1006,7 @@ int getNewAddress(int level,symbolTableLevels * levels)
 
   t->addressCount++;
 
+	printf("New address returned. ");
   return t->addressCount;
 }
 
