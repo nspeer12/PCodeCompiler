@@ -89,7 +89,7 @@ int main(int argc, char ** argv)
 		printf("No errors, program is syntactically correct\n");
 
 	printCode(code, cx, print);
-	// printSymbolTable(symbolTableHead);
+	printSymbolTable(symbolTableHead);
 	return 0;
 }
 
@@ -653,7 +653,7 @@ token * factor(int l, token * tok, symbol * head, instruction * code, int * cx, 
 		else if (tmp->kind == 2) // variable
 		{
 			// LOD from stack into register
-			emit(code, cx, 3, reg, tmp->level, tmp->addr);
+			emit(code, cx, 3, reg, l, tmp->addr);
 		}
 
 		tok = fetch(tok);
