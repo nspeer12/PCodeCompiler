@@ -321,7 +321,7 @@ token * block(int l, token * tok, symbol * head, instruction * code, int * cx)
 	}while((tok->type == constsym) || (tok->type == varsym) || (tok->type == procsym));
 
 	int reg = 0;
-	code[symbolTable->addr].M = *cx;
+	// code[symbolTable->addr].M = *cx;
 
 	// allocate stack memory
 	tok = statement(l,tok, head, code, cx, reg);

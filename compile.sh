@@ -123,4 +123,3 @@ fi
 
 rm tmp/instructions.a
 rm tmp/lex.output
-
