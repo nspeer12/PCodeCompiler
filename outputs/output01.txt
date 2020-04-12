@@ -22,7 +22,42 @@ identsym	2	pasta
 semicolonsym	18	;
 endsym	22	end
 periodsym	19	.
+constsym	28	const
+identsym	2	pasta
+eqlsym	9	=
+numbersym	3	5
+semicolonsym	18	;
+varsym	29	var
+identsym	2	x
+commasym	17	,
+identsym	2	y
+semicolonsym	18	;
+beginsym	21	begin
+identsym	2	x
+becomessym	20	:=
+numbersym	3	40
+semicolonsym	18	;
+identsym	2	y
+becomessym	20	:=
+identsym	2	x
+plussym	4	+
+identsym	2	pasta
+semicolonsym	18	;
+endsym	22	end
+periodsym	19	.
+END OF LIST
+No errors, program is syntactically correct
 
+CODE
+OP	R	L	M
+6	0	0	1
+6	0	0	1
+1	0	0	40
+4	0	0	0
+3	0	0	0
+1	1	0	5
+13	0	0	1
+4	0	0	1
 Generated Assembly Code
 6 0 0 1
 6 0 0 1
@@ -41,38 +76,38 @@ Line	OP	R	L	M
 3	sto	0	0	0
 4	lod	0	0	0
 5	lit	1	0	5
-0	add	0	1	0
+6	add	0	0	1
 7	sto	0	0	1
 		pc	bp	sp	registers
 Initial Values	0	1	0	0 0 0 0 0 0 0 0 
 Stack: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
 
 		pc	bp	sp	registers
-0 inc 0 0 1 	1	1	1	0 0 0 0 0 0 0 0 0 
+0 inc 0 0 1 	1	1	1	0 0 0 0 0 0 0 0 
 Stack: 0 0 
 
-1 inc 0 0 1 	2	1	2	0 0 0 0 0 0 0 0 0 
+1 inc 0 0 1 	2	1	2	0 0 0 0 0 0 0 0 
 Stack: 0 0 0 
 
-2 lit 0 0 40 	3	1	2	40 0 0 0 0 0 0 0 0 
+2 lit 0 0 40 	3	1	2	40 0 0 0 0 0 0 0 
 Stack: 0 0 0 
 
-3 sto 0 0 0 	4	1	2	40 0 0 0 0 0 0 0 0 
+3 sto 0 0 0 	4	1	2	40 0 0 0 0 0 0 0 
 Stack: 0 40 0 
 
-4 lod 0 0 0 	5	1	2	40 0 0 0 0 0 0 0 0 
+4 lod 0 0 0 	5	1	2	40 0 0 0 0 0 0 0 
 Stack: 0 40 0 
 
-5 lit 1 0 5 	6	1	2	40 5 0 0 0 0 0 0 0 
+5 lit 1 0 5 	6	1	2	40 5 0 0 0 0 0 0 
 Stack: 0 40 0 
 
-6 	7	1	2	45 5 0 0 0 0 0 0 0 
+6 	7	1	2	45 5 0 0 0 0 0 0 
 Stack: 0 40 0 
 
-7 sto 0 0 1 	8	1	2	45 5 0 0 0 0 0 0 0 
+7 sto 0 0 1 	8	1	2	45 5 0 0 0 0 0 0 
 Stack: 0 40 45 
 
-8 	9	1	2	45 5 0 0 0 0 0 0 0 
+8 	9	1	2	45 5 0 0 0 0 0 0 
 Stack: 0 40 45 
 
 

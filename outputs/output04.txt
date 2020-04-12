@@ -43,7 +43,79 @@ multsym	6	*
 identsym	2	pasta
 endsym	22	end
 periodsym	19	.
+constsym	28	const
+identsym	2	pasta
+eqlsym	9	=
+numbersym	3	5
+semicolonsym	18	;
+varsym	29	var
+identsym	2	x
+commasym	17	,
+identsym	2	y
+semicolonsym	18	;
+beginsym	21	begin
+identsym	2	x
+becomessym	20	:=
+numbersym	3	40
+multsym	6	*
+identsym	2	pasta
+semicolonsym	18	;
+ifsym	23	if
+lparentsym	15	(
+identsym	2	x
+slashsym	7	/
+numbersym	3	40
+rparentsym	16	)
+eqlsym	9	=
+identsym	2	pasta
+thensym	24	then
+ifsym	23	if
+lparentsym	15	(
+identsym	2	x
+slashsym	7	/
+numbersym	3	40
+rparentsym	16	)
+eqlsym	9	=
+identsym	2	pasta
+thensym	24	then
+identsym	2	x
+becomessym	20	:=
+identsym	2	pasta
+multsym	6	*
+identsym	2	pasta
+multsym	6	*
+identsym	2	pasta
+endsym	22	end
+periodsym	19	.
+END OF LIST
+No errors, program is syntactically correct
 
+CODE
+OP	R	L	M
+6	0	0	1
+6	0	0	1
+1	0	0	40
+1	1	0	5
+15	0	0	1
+4	0	0	0
+3	0	0	0
+1	1	0	40
+16	0	0	1
+1	1	0	5
+19	0	0	1
+8	0	0	24
+3	0	0	0
+1	1	0	40
+16	0	0	1
+1	1	0	5
+19	0	0	1
+8	0	0	24
+1	0	0	5
+1	1	0	5
+15	0	0	1
+1	1	0	5
+15	0	0	1
+4	0	0	0
 Generated Assembly Code
 6 0 0 1
 6 0 0 1
@@ -94,79 +166,79 @@ Initial Values	0	1	0	0 0 0 0 0 0 0 0
 Stack: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
 
 		pc	bp	sp	registers
-0 inc 0 0 1 	1	1	1	0 0 0 0 0 0 0 0 0 
+0 inc 0 0 1 	1	1	1	0 0 0 0 0 0 0 0 
 Stack: 0 0 
 
-1 inc 0 0 1 	2	1	2	0 0 0 0 0 0 0 0 0 
+1 inc 0 0 1 	2	1	2	0 0 0 0 0 0 0 0 
 Stack: 0 0 0 
 
-2 lit 0 0 40 	3	1	2	40 0 0 0 0 0 0 0 0 
+2 lit 0 0 40 	3	1	2	40 0 0 0 0 0 0 0 
 Stack: 0 0 0 
 
-3 lit 1 0 5 	4	1	2	40 5 0 0 0 0 0 0 0 
+3 lit 1 0 5 	4	1	2	40 5 0 0 0 0 0 0 
 Stack: 0 0 0 
 
-4 	5	1	2	200 5 0 0 0 0 0 0 0 
+4 	5	1	2	200 5 0 0 0 0 0 0 
 Stack: 0 0 0 
 
-5 sto 0 0 0 	6	1	2	200 5 0 0 0 0 0 0 0 
+5 sto 0 0 0 	6	1	2	200 5 0 0 0 0 0 0 
 Stack: 0 200 0 
 
-6 lod 0 0 0 	7	1	2	200 5 0 0 0 0 0 0 0 
+6 lod 0 0 0 	7	1	2	200 5 0 0 0 0 0 0 
 Stack: 0 200 0 
 
-7 lit 1 0 40 	8	1	2	200 40 0 0 0 0 0 0 0 
+7 lit 1 0 40 	8	1	2	200 40 0 0 0 0 0 0 
 Stack: 0 200 0 
 
-8 	9	1	2	5 40 0 0 0 0 0 0 0 
+8 	9	1	2	5 40 0 0 0 0 0 0 
 Stack: 0 200 0 
 
-9 lit 1 0 5 	10	1	2	5 5 0 0 0 0 0 0 0 
+9 lit 1 0 5 	10	1	2	5 5 0 0 0 0 0 0 
 Stack: 0 200 0 
 
-10 	11	1	2	1 5 0 0 0 0 0 0 0 
+10 	11	1	2	1 5 0 0 0 0 0 0 
 Stack: 0 200 0 
 
-11 jpc 0, 0, 24 	12	1	2	1 5 0 0 0 0 0 0 0 
+11 jpc 0, 0, 24 	12	1	2	1 5 0 0 0 0 0 0 
 Stack: 0 200 0 
 
-12 lod 0 0 0 	13	1	2	200 5 0 0 0 0 0 0 0 
+12 lod 0 0 0 	13	1	2	200 5 0 0 0 0 0 0 
 Stack: 0 200 0 
 
-13 lit 1 0 40 	14	1	2	200 40 0 0 0 0 0 0 0 
+13 lit 1 0 40 	14	1	2	200 40 0 0 0 0 0 0 
 Stack: 0 200 0 
 
-14 	15	1	2	5 40 0 0 0 0 0 0 0 
+14 	15	1	2	5 40 0 0 0 0 0 0 
 Stack: 0 200 0 
 
-15 lit 1 0 5 	16	1	2	5 5 0 0 0 0 0 0 0 
+15 lit 1 0 5 	16	1	2	5 5 0 0 0 0 0 0 
 Stack: 0 200 0 
 
-16 	17	1	2	1 5 0 0 0 0 0 0 0 
+16 	17	1	2	1 5 0 0 0 0 0 0 
 Stack: 0 200 0 
 
-17 jpc 0, 0, 24 	18	1	2	1 5 0 0 0 0 0 0 0 
+17 jpc 0, 0, 24 	18	1	2	1 5 0 0 0 0 0 0 
 Stack: 0 200 0 
 
-18 lit 0 0 5 	19	1	2	5 5 0 0 0 0 0 0 0 
+18 lit 0 0 5 	19	1	2	5 5 0 0 0 0 0 0 
 Stack: 0 200 0 
 
-19 lit 1 0 5 	20	1	2	5 5 0 0 0 0 0 0 0 
+19 lit 1 0 5 	20	1	2	5 5 0 0 0 0 0 0 
 Stack: 0 200 0 
 
-20 	21	1	2	25 5 0 0 0 0 0 0 0 
+20 	21	1	2	25 5 0 0 0 0 0 0 
 Stack: 0 200 0 
 
-21 lit 1 0 5 	22	1	2	25 5 0 0 0 0 0 0 0 
+21 lit 1 0 5 	22	1	2	25 5 0 0 0 0 0 0 
 Stack: 0 200 0 
 
-22 	23	1	2	125 5 0 0 0 0 0 0 0 
+22 	23	1	2	125 5 0 0 0 0 0 0 
 Stack: 0 200 0 
 
-23 sto 0 0 0 	24	1	2	125 5 0 0 0 0 0 0 0 
+23 sto 0 0 0 	24	1	2	125 5 0 0 0 0 0 0 
 Stack: 0 125 0 
 
-24 	25	1	2	125 5 0 0 0 0 0 0 0 
+24 	25	1	2	125 5 0 0 0 0 0 0 
 Stack: 0 125 0 
 
 
