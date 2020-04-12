@@ -120,6 +120,8 @@ token * block(int l, token * tok, symbol * head, instruction * code, int * cx)
 {
 	symbol * symbolTable;
 
+	// this logic is causing the symbol table to be overwritten
+
 	// allocate space in the stack
 	stackidx = 0;
 
@@ -143,7 +145,8 @@ token * block(int l, token * tok, symbol * head, instruction * code, int * cx)
 	else
 	{
 		symbolTable = findByIndex(head, tx0);
-		symbolTable->addr = *cx;
+		// this line was screwing everything up
+		// symbolTable->addr = *cx;
 	}
 
 	do
@@ -271,8 +274,6 @@ token * block(int l, token * tok, symbol * head, instruction * code, int * cx)
 
 			strcpy(name,tok->value);
 
-			// insert into symbol table.
-			insertSym(head, 3, name, value, setNewLevel(l,container), *cx);
 
 			tok = fetch(tok);
 
@@ -287,11 +288,11 @@ token * block(int l, token * tok, symbol * head, instruction * code, int * cx)
 			}
 
 			// make a recursive call to this function. Increase lev.
-
+			// insert into symbol table.
+			insertSym(head, 3, name, value, setNewLevel(l,container), *cx);
 			masterLevels++;
 			tok = block(l+1, tok, head, code, cx);
 
-			// return back to the line that's calling the procedure
 
 			if (tok->type != semicolonsym)
 			{
@@ -302,6 +303,7 @@ token * block(int l, token * tok, symbol * head, instruction * code, int * cx)
 				tok = fetch(tok);
 			}
 
+			// return back to the line that's calling the procedure
 			emit(code, cx, 2, 0, 0, 0);
 
 			// jump to end of procedure
@@ -309,7 +311,7 @@ token * block(int l, token * tok, symbol * head, instruction * code, int * cx)
 
 		}
 
-	}while((tok->type == constsym) || (tok->type == varsym) || (tok->type == procsym));
+	} while((tok->type == constsym) || (tok->type == varsym) || (tok->type == procsym));
 
 	int reg = 0;
 	// code[symbolTable->addr].M = *cx;
@@ -376,7 +378,7 @@ token * statement(int l, token * tok, symbol * head, instruction * code, int * c
 			{
 				// This means it is a procsym.
 				// put the emit statement here.
-				emit(code, cx, 5, reg, l-(var->level), var->addr);
+				emit(code, cx, 5, reg, var->level - l, var->addr);
 			}
 			else
 			{
@@ -702,41 +704,42 @@ symbol * createNewSymbolTable()
 
 symbol * insertSym(symbol * sym, int kind, char * name, double val, int level, int addr)
 {
-	 symbol * iterator = sym;
+	printf("\nINSERTING SYM %s\n", name);
+	symbol * iterator = sym;
 
 	 // need to account for addresses
 	 // NOTE: start at address -1, since
-	 int i = 0;
-	 while(iterator->next != NULL)
-	 {
+	int i = 0;
+	while(iterator->next != NULL)
+	{
 		iterator = iterator->next;
 
 		// only account for varaibles
 		if (iterator->kind == 2)
 			i++;
-	 }
+	}
 
-		symbol * tmp = malloc(sizeof(symbol));
-		tmp->kind = kind;
-		strcpy(tmp->name, name);
-		tmp->val = val;
-		tmp->level = level;
+	symbol * tmp = malloc(sizeof(symbol));
+	tmp->kind = kind;
+	strcpy(tmp->name, name);
+	tmp->val = val;
+	tmp->level = level;
 
+	if(kind == 2)
+	{
+		tmp->addr = stackidx;
+		stackidx++;
+	}
+	else if (kind == 3)
+	{
+		tmp->addr = addr;
+		printf("\nVAR %s is at %d\n", tmp->name, tmp->addr);
+	}
 
-		if(kind == 2)
-		{
-			tmp->addr = stackidx;
-			stackidx++;
-		}
-		else if(kind == 3)
-		{
-			tmp->addr = addr;
-		}
+	tmp->next = NULL;
+	iterator->next = tmp;
 
-		tmp->next = NULL;
-		iterator->next = tmp;
-
-		return sym;
+	return sym;
 
 }
 
@@ -880,7 +883,7 @@ symbol * findByIndex(symbol * head, int index)
 {
 	symbol * temp = head;
 
-	while(index>0)
+	while(index > 0)
 	{
 		temp = temp->next;
 		index--;
@@ -930,7 +933,6 @@ int setNewLevel(int level, symbolTableLevels * container)
 
 	 t = t->next;
   }
-	printf("New Level Set. ");
   return level;
 }
 
