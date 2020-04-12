@@ -1,5 +1,6 @@
-// Written by Stephen Speer
-// Written by Danish Siddiqui
+// Written By:
+// Stephen Speer
+// Danish Siddiqui
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -168,57 +169,58 @@ char * getReservedWordName(char temp[])
 	char *result = NULL;
 	result = malloc(sizeof(char)*12);
 
-	for(i = 0; i < 15; i++)
-	{
-			if(strcmp(temp, word[i]) == 0)
-			{
-					if(i==0)
-						strcpy(result,"nulsym");
+		for(i = 0; i < 15; i++)
+		{
+				if(strcmp(temp, word[i]) == 0)
+				{
+						if(i==0)
+							strcpy(result,"nulsym");
 
-					if(i==1)
-						strcpy(result,"beginsym");
+						if(i==1)
+							strcpy(result,"beginsym");
 
-					if(i==2)
-						strcpy(result,"callsym");
+						if(i==2)
+							strcpy(result,"callsym");
 
-					if(i==3)
-						strcpy(result,"constsym");
+						if(i==3)
+							strcpy(result,"constsym");
 
-					if(i==4)
-						strcpy(result,"dosym");
+						if(i==4)
+							strcpy(result,"dosym");
 
-					if(i==5)
-						strcpy(result,"elsesym");
+						if(i==5)
+							strcpy(result,"elsesym");
 
-					if(i==6)
-						strcpy(result,"endsym");
+						if(i==6)
+							strcpy(result,"endsym");
 
-					if(i==7)
-						strcpy(result,"ifsym");
+						if(i==7)
+							strcpy(result,"ifsym");
 
-					if(i==8)
-						strcpy(result,"oddsym");
+						if(i==8)
+							strcpy(result,"oddsym");
 
-					if(i==9)
-						strcpy(result,"procsym");
+						if(i==9)
+							strcpy(result,"procsym");
 
-					if(i==10)
-						strcpy(result,"readsym");
+						if(i==10)
+							strcpy(result,"readsym");
 
-					if(i==11)
-						strcpy(result,"thensym");
+						if(i==11)
+							strcpy(result,"thensym");
 
-					if(i==12)
-						strcpy(result,"varsym");
+						if(i==12)
+							strcpy(result,"varsym");
 
-					if(i==13)
-						strcpy(result,"whilesym");
+						if(i==13)
+							strcpy(result,"whilesym");
 
-					if(i==14)
-						strcpy(result,"writesym");
+						if(i==14)
+							strcpy(result,"writesym");
 
-			}
-	}
+				}
+		}
+
 	return result;
 }
 
@@ -457,13 +459,28 @@ void identify(char temp[], int ssym[], int *lexemesLength, int print)
 			}
 			else
 			{
-				if (print)
-					printf("%d\n",identsym);
 
-				current.type = identsym;
-				strcpy(current.inputValue,temp);
-				strcpy(current.name,"identsym");
-				masterArray[*lexemesLength] = current;
+				if(strcmp(temp,"int") == 0)
+				{
+					if (print)
+						printf("%d\n",varsym);
+
+					current.type = varsym;
+					strcpy(current.inputValue,temp);
+					strcpy(current.name,"varsym");
+					masterArray[*lexemesLength] = current;
+				}
+				else
+				{
+					if (print)
+						printf("%d\n",identsym);
+
+					current.type = identsym;
+					strcpy(current.inputValue,temp);
+					strcpy(current.name,"identsym");
+					masterArray[*lexemesLength] = current;
+				}
+
 			}
 
 		}
@@ -546,9 +563,6 @@ int echoFile(char * filename, int print)
 
 void writeLexemeList(int *lexemesLength)
 {
-	char *errors = NULL;
-	errors = malloc(sizeof(char)*100000);
-
 	//FILE * typeFile = fopen("tmp/lex.type.output", "w");
 	//FILE * nameFile = fopen("tmp/lex.name.output", "w");
 	//FILE * valueFile = fopen("tmp/lex.value.output", "w")
@@ -566,9 +580,6 @@ void writeLexemeList(int *lexemesLength)
 
 void printLexemeList(int *lexemesLength)
 {
-	char *errors = NULL;
-	errors = malloc(sizeof(char)*100000);
-
 	printf("\nLexeme List: \n");
 
 	for(int i = 0; i < *lexemesLength; i++)
