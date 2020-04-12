@@ -940,15 +940,26 @@ int setNewLevel(int level, symbolTableLevels * container)
 int getNewAddress(int level, symbolTableLevels * container)
 {
   // iterate to last level.
-  symbolTableLevels * t = container;
-  int i;
+ 	symbolTableLevels * t = container;
+ 	int i;
+	int addr;
 
-  for(i = 0; i < level; i++)
-	 t = t->next;
+ 	for(i = 0; i < level; i++)
+		t = t->next;
 
-	// this is probably wrong
- 	t->addressCount++;
-	return t->addressCount;
+	if (level > 0)
+	{
+		addr = t->addressCount+4;
+
+	}
+	else
+	{
+		addr = t->addressCount;
+	}
+
+	printf("\nADDRESS %d\n", addr);
+	t->addressCount++;
+	return addr;
 }
 
 int getTableIndex(symbol * head)

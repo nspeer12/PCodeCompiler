@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 
 	// Stack Pointer
 	// Points to the top of the stack.
-	int SP = 0;
+	int SP = 3;
 
 	// Base Pointer
 	// Points to a current AR in stack.
@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
 				// store the value in the stack at offset M and level L
 				if (print == 1)
 					printf("sto %d %d %d ",IR.R, IR.L, IR.M);
-				// stack[base(IR.L, stack, BP) + IR.M] = registerFile[IR.R];
+				//stack[base(IR.L, stack, BP) + IR.M] = registerFile[IR.R];
 				stack[BP+IR.M] = registerFile[IR.R];
 				break;
 
