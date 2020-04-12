@@ -35,11 +35,11 @@ int main(int argc, char *argv[])
 
 	// Stack Pointer
 	// Points to the top of the stack.
-	int SP = 3;
+	int SP = 4;
 
 	// Base Pointer
 	// Points to a current AR in stack.
-	int BP = 1;
+	int BP = 0;
 
 	// Program Counter
 	int PC = 0;
