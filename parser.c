@@ -89,7 +89,6 @@ int main(int argc, char ** argv)
 		printf("No errors, program is syntactically correct\n");
 
 	printCode(code, cx, print);
-	printSymbolTable(symbolTableHead);
 	return 0;
 }
 
