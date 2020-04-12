@@ -89,7 +89,7 @@ int main(int argc, char ** argv)
 		printf("No errors, program is syntactically correct\n");
 
 	printCode(code, cx, print);
-	printSymbolTable(symbolTableHead);
+	// printSymbolTable(symbolTableHead);
 	return 0;
 }
 
@@ -103,7 +103,6 @@ token * program(token * tok, symbol * head, instruction * code, int * cx)
 {
 	// get the first token after head
 	tok = fetch(tok);
-	printf("New Token: %s\n",tok->value);
 
 	tok = block(0, tok, head, code, cx);
 
@@ -252,7 +251,6 @@ token * block(int l, token * tok, symbol * head, instruction * code, int * cx)
 			tok = fetch(tok);
 		}
 
-		// !!!
 		while(tok->type == procsym)
 		{
 			char * name = malloc(sizeof(char)*15);
@@ -704,7 +702,6 @@ symbol * createNewSymbolTable()
 
 symbol * insertSym(symbol * sym, int kind, char * name, double val, int level, int addr)
 {
-	printf("\nINSERTING SYM %s\n", name);
 	symbol * iterator = sym;
 
 	 // need to account for addresses
@@ -733,7 +730,6 @@ symbol * insertSym(symbol * sym, int kind, char * name, double val, int level, i
 	else if (kind == 3)
 	{
 		tmp->addr = addr;
-		printf("\nVAR %s is at %d\n", tmp->name, tmp->addr);
 	}
 
 	tmp->next = NULL;
@@ -908,7 +904,6 @@ symbol * findVar(symbol * head, char * name)
 	  return NULL;
 	}
 
-	printf("VARIABLE: %s %d\n", temp->name, temp->addr);
 	// return pointer to symbol
 	return temp;
 }
@@ -947,17 +942,8 @@ int getNewAddress(int level, symbolTableLevels * container)
  	for(i = 0; i < level; i++)
 		t = t->next;
 
-	if (level > 0)
-	{
-		addr = t->addressCount+4;
 
-	}
-	else
-	{
-		addr = t->addressCount;
-	}
-
-	printf("\nADDRESS %d\n", addr);
+	addr = t->addressCount;
 	t->addressCount++;
 	return addr;
 }
