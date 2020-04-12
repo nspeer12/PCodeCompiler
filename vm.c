@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
 				// store the value in the stack at offset M and level L
 				if (print == 1)
 					printf("sto %d %d %d ",IR.R, IR.L, IR.M);
-				//stack[base(IR.L, stack, BP) + IR.M] = registerFile[IR.R];
+				// stack[base(IR.L, stack, BP) + IR.M] = registerFile[IR.R];
 				stack[BP+IR.M] = registerFile[IR.R];
 				break;
 
@@ -158,11 +158,12 @@ int main(int argc, char *argv[])
 				// generates a new activation record
 				if (print == 1)
 					printf("cal 0 %d %d ", IR.L, IR.M);
-				stack[SP + 1] = 0;	// space return value
+				stack[SP + 1] = 0;								// space return value
 				stack[SP + 2] = base(IR.L, stack, BP); 	// static link (SL)
-				stack[SP + 3] = BP;	// dynamic link (DL)
-				stack[SP + 4] = PC;	 		// return address (RA)
+				stack[SP + 3] = BP;								// dynamic link (DL)
+				stack[SP + 4] = PC;	 							// return address (RA)
 				BP = SP + 1;
+				SP = BP + 4;
 				PC = IR.M;
 
 				break;
@@ -384,8 +385,6 @@ void print_state(instruction IR, int * stack, int PC, int BP, int SP, int * regi
 
 int base(int l, int * stack, int BP)
 {
-	// defined in instructions
-
 	int b = BP;
 	while(l > 0)
 	{

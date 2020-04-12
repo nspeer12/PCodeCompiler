@@ -120,10 +120,8 @@ token * block(int l, token * tok, symbol * head, instruction * code, int * cx)
 {
 	symbol * symbolTable;
 
-	// this logic is causing the symbol table to be overwritten
-
 	// allocate space in the stack
-	stackidx = 0;
+	stackidx = 4;
 
 	int masterDoCount = 0;
 
@@ -140,7 +138,6 @@ token * block(int l, token * tok, symbol * head, instruction * code, int * cx)
 		new->addr = *cx;
 		new->next = NULL;
 		head->next = new;
-
 	}
 	else
 	{
@@ -241,7 +238,7 @@ token * block(int l, token * tok, symbol * head, instruction * code, int * cx)
 				// allocate stack memory
 				tok = fetch(tok);
 
-				emit(code, cx, 6, 0, 0, 1);
+				emit(code, cx, 6, 0, l, 1);
 
 
 			} while(tok->type == commasym);
@@ -291,6 +288,8 @@ token * block(int l, token * tok, symbol * head, instruction * code, int * cx)
 			// insert into symbol table.
 			insertSym(head, 3, name, value, setNewLevel(l,container), *cx);
 			masterLevels++;
+			// allocate stack for next call
+			// emit(code, cx, 6, 0, 0, 1);
 			tok = block(l+1, tok, head, code, cx);
 
 
@@ -378,7 +377,8 @@ token * statement(int l, token * tok, symbol * head, instruction * code, int * c
 			{
 				// This means it is a procsym.
 				// put the emit statement here.
-				emit(code, cx, 5, reg, var->level - l, var->addr);
+				// emit(code, cx, 5, reg, l - var->level, var->addr);
+				emit(code, cx, 5, reg, l, var->addr);
 			}
 			else
 			{
