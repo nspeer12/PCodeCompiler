@@ -156,7 +156,7 @@ int main(int argc, char *argv[])
 			case(5):
 				// call a procedure at index M
 				// generates a new activation record
-				activationRecord[BP] = 1;
+				activationRecord[SP] = 1;
 				activationRecord[0] = 0;
 				if (print == 1)
 					printf("cal 0 %d %d ", IR.L, IR.M);
@@ -286,12 +286,8 @@ int main(int argc, char *argv[])
 		}
 
 		if (IR.OP == 2)
-			activationRecord[BP] = 0;
+			activationRecord[SP] = 0;
 
-		if (IR.OP == 5)
-		{
-			activationRecord[BP] = 1;
-		}
 
 
 		if (print)
