@@ -350,7 +350,7 @@ token * statement(int l, token * tok, symbol * head, instruction * code, int * c
 		tok = expression(l, tok, head, code, cx, reg);
 
 		// store the register into the stack
-		emit(code, cx, 4, reg, var->level, var->addr);
+		emit(code, cx, 4, reg, l - var->level, var->addr);
 	}
 	else if (tok->type == callsym)
 	{
