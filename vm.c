@@ -32,7 +32,7 @@ void print_state(instruction IR, int * stack, int PC, int BP, int SP, int * regi
 int main(int argc, char *argv[])
 {
 	int print = (argc > 2 && (strcmp(argv[2], "-v") == 0)) ? 1 : 0;
-	
+
 	// Stack Pointer
 	// Points to the top of the stack.
 	int SP = 0;
