@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 
 	// Stack Pointer
 	// Points to the top of the stack.
-	int SP = 4;
+	int SP = 3;
 
 	// Base Pointer
 	// Points to a current AR in stack.
@@ -196,7 +196,7 @@ int main(int argc, char *argv[])
 				if (print == 1)
 					printf("sio %d, 0, 1 ", IR.R);
 
-				printf("%d", registerFile[IR.R]);
+				printf("%d\n", registerFile[IR.R]);
 				break;
 
 			case(10):
@@ -284,10 +284,10 @@ int main(int argc, char *argv[])
 		}
 
 		if (IR.OP == 2)
-			activationRecord[SP] = 0;
+			activationRecord[BP] = 0;
 
 		if (IR.OP == 5)
-			activationRecord[SP] = 1;
+			activationRecord[BP] = 1;
 
 		if (print)
 			print_state(IR, stack, PC, BP, SP, registerFile, activationRecord);
