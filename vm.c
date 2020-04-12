@@ -156,6 +156,8 @@ int main(int argc, char *argv[])
 			case(5):
 				// call a procedure at index M
 				// generates a new activation record
+				activationRecord[BP] = 1;
+				activationRecord[0] = 0;
 				if (print == 1)
 					printf("cal 0 %d %d ", IR.L, IR.M);
 				stack[SP + 1] = 0;								// space return value
@@ -287,7 +289,10 @@ int main(int argc, char *argv[])
 			activationRecord[BP] = 0;
 
 		if (IR.OP == 5)
+		{
 			activationRecord[BP] = 1;
+		}
+
 
 		if (print)
 			print_state(IR, stack, PC, BP, SP, registerFile, activationRecord);
