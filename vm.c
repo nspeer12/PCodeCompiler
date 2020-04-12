@@ -143,7 +143,6 @@ int main(int argc, char *argv[])
 				if (print == 1)
 					printf("lod %d %d %d ",IR.R, IR.L, IR.M);
 				registerFile[IR.R] = stack[base(IR.L, stack, BP) + IR.M];
-				//printf("\n\n\n\nSTACK VALUE %d\n", IR.R);
 				break;
 
 			case(4):
@@ -171,7 +170,7 @@ int main(int argc, char *argv[])
 				// allocate M locals, increment stack pointer by M
 				// first four values are functional value, static link, dyn. link, and return addr.
 				if (print == 1)
-					printf("inc 0 0 %d ",IR.M);
+					printf("inc 0 %d %d ", IR.L, IR.M);
 				SP = SP + IR.M;
 				break;
 

@@ -258,6 +258,9 @@ token * block(int l, token * tok, symbol * head, instruction * code, int * cx)
 			char * name = malloc(sizeof(char)*15);
 			double value = 0;
 
+			int cxtmp = *cx;
+			emit(code, cx, 7, 0, 0, 0);
+
 			tok = fetch(tok);
 
 			if (tok->type != identsym)
@@ -267,6 +270,7 @@ token * block(int l, token * tok, symbol * head, instruction * code, int * cx)
 			}
 
 			strcpy(name,tok->value);
+
 			// insert into symbol table.
 			insertSym(head, 3, name, value, setNewLevel(l,container), *cx);
 
@@ -284,9 +288,10 @@ token * block(int l, token * tok, symbol * head, instruction * code, int * cx)
 
 			// make a recursive call to this function. Increase lev.
 
-			// !!! Recursive call
 			masterLevels++;
 			tok = block(l+1, tok, head, code, cx);
+
+			// return back to the line that's calling the procedure
 
 			if (tok->type != semicolonsym)
 			{
@@ -296,6 +301,12 @@ token * block(int l, token * tok, symbol * head, instruction * code, int * cx)
 			{
 				tok = fetch(tok);
 			}
+
+			emit(code, cx, 2, 0, 0, 0);
+
+			// jump to end of procedure
+			code[cxtmp].M = *cx;
+
 		}
 
 	}while((tok->type == constsym) || (tok->type == varsym) || (tok->type == procsym));
@@ -304,7 +315,7 @@ token * block(int l, token * tok, symbol * head, instruction * code, int * cx)
 	// code[symbolTable->addr].M = *cx;
 
 	// allocate stack memory
-	tok = statement(l,tok, head, code, cx, reg);
+	tok = statement(l, tok, head, code, cx, reg);
 
 	// Return statement fucked up
 	//emit(code, cx, 2, 0, 0, 0);
@@ -355,9 +366,6 @@ token * statement(int l, token * tok, symbol * head, instruction * code, int * c
     	}
 		else
 		{
-			// check if this exists in the symbol table.
-			var = findVar(head,tok->value);
-
 			// check for valid addres
 			if(var == NULL)
 			{
