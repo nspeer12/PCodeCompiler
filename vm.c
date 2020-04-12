@@ -35,11 +35,11 @@ int main(int argc, char *argv[])
 
 	// Stack Pointer
 	// Points to the top of the stack.
-	int SP = 0;
+	int SP = 3;
 
 	// Base Pointer
 	// Points to a current AR in stack.
-	int BP = 1;
+	int BP = 0;
 
 	// Program Counter
 	int PC = 0;
@@ -143,7 +143,6 @@ int main(int argc, char *argv[])
 				if (print == 1)
 					printf("lod %d %d %d ",IR.R, IR.L, IR.M);
 				registerFile[IR.R] = stack[base(IR.L, stack, BP) + IR.M];
-				//printf("\n\n\n\nSTACK VALUE %d\n", IR.R);
 				break;
 
 			case(4):
@@ -156,13 +155,16 @@ int main(int argc, char *argv[])
 			case(5):
 				// call a procedure at index M
 				// generates a new activation record
+				activationRecord[SP] = 1;
+				activationRecord[0] = 0;
 				if (print == 1)
 					printf("cal 0 %d %d ", IR.L, IR.M);
-				stack[SP + 1] = 0;	// space return value
+				stack[SP + 1] = 0;								// space return value
 				stack[SP + 2] = base(IR.L, stack, BP); 	// static link (SL)
-				stack[SP + 3] = BP;	// dynamic link (DL)
-				stack[SP + 4] = PC;	 		// return address (RA)
+				stack[SP + 3] = BP;								// dynamic link (DL)
+				stack[SP + 4] = PC;	 							// return address (RA)
 				BP = SP + 1;
+				SP = BP + 4;
 				PC = IR.M;
 
 				break;
@@ -171,7 +173,7 @@ int main(int argc, char *argv[])
 				// allocate M locals, increment stack pointer by M
 				// first four values are functional value, static link, dyn. link, and return addr.
 				if (print == 1)
-					printf("inc 0 0 %d ",IR.M);
+					printf("inc 0 %d %d ", IR.L, IR.M);
 				SP = SP + IR.M;
 				break;
 
@@ -195,7 +197,7 @@ int main(int argc, char *argv[])
 				if (print == 1)
 					printf("sio %d, 0, 1 ", IR.R);
 
-				printf("%d", registerFile[IR.R]);
+				printf("%d\n", registerFile[IR.R]);
 				break;
 
 			case(10):
@@ -285,8 +287,7 @@ int main(int argc, char *argv[])
 		if (IR.OP == 2)
 			activationRecord[SP] = 0;
 
-		if (IR.OP == 5)
-			activationRecord[SP] = 1;
+
 
 		if (print)
 			print_state(IR, stack, PC, BP, SP, registerFile, activationRecord);
@@ -384,8 +385,6 @@ void print_state(instruction IR, int * stack, int PC, int BP, int SP, int * regi
 
 int base(int l, int * stack, int BP)
 {
-	// defined in instructions
-
 	int b = BP;
 	while(l > 0)
 	{
